@@ -1,0 +1,15 @@
+export const PIECE_MAPPINGS = {
+  r: "/media/bR.svg",
+  n: "/media/bN.svg",
+  b: "/media/bB.svg",
+  q: "/media/bQ.svg",
+  k: "/media/bK.svg",
+  p: "/media/bP.svg",
+  R: "/media/wR.svg",
+  N: "/media/wN.svg",
+  B: "/media/wB.svg",
+  Q: "/media/wQ.svg",
+  K: "/media/wK.svg",
+  P: "/media/wP.svg",
+  Trash: "/media/Trash.svg",
+};

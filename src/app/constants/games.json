@@ -1,0 +1,66 @@
+[
+  {
+    "slug": "guess-the-square",
+    "path": "/guess-the-square",
+    "title": "Guess the Square",
+    "pageDescription": "Guess the highlighted square as quickly as possible within 1 minute—perfect for sharpening lightning-fast board reading.",
+    "metaDescription": "Guess the highlighted square as quickly as possible within 1 minute—perfect for sharpening lightning-fast board reading.",
+    "cardDescription": "Spot the highlighted square fast to sharpen board vision.",
+    "icon": "FaChessBoard",
+    "gradient": "bg-gradient-to-br from-purple-900/40 to-blue-900/40",
+    "coverPhoto": "/media/cropped_guess_the_square.jpeg",
+    "category": "Standard",
+    "tags": [
+      "visualisation",
+      "memory"
+    ]
+  },
+  {
+    "slug": "blind-tactics",
+    "path": "/blind-tactics",
+    "title": "Blind Tactics",
+    "pageDescription": "Blind Tactics is inspired by listudy.org—visualize the board entirely in your head and calculate the single winning continuation.",
+    "metaDescription": "Blind Tactics is inspired by listudy.org—visualize the board entirely in your head and calculate the single winning continuation.",
+    "cardDescription": "Solve tactics in your head—no board, pure focus.",
+    "icon": "GiBrain",
+    "gradient": "bg-gradient-to-br from-red-900/40 to-pink-900/40",
+    "coverPhoto": "/media/cropped_blind_tactics.jpeg",
+    "category": "Standard",
+    "tags": [
+      "visualisation",
+      "memory"
+    ]
+  },
+  {
+    "slug": "mix-tactics",
+    "path": "/mix-tactics",
+    "title": "Mix Tactics",
+    "pageDescription": "Mix Tactics consists of standard chess puzzle tactics served in random orders and unpredictable difficulty spikes.",
+    "metaDescription": "Mix Tactics consists of standard chess puzzle tactics served in random orders and unpredictable difficulty spikes.",
+    "cardDescription": "Random puzzles with unpredictable twists and levels.",
+    "icon": "IoExtensionPuzzle",
+    "gradient": "bg-gradient-to-br from-green-900/40 to-teal-900/40",
+    "coverPhoto": "/media/cropped_mix_tactics.jpeg",
+    "category": "Standard",
+    "tags": [
+      "intuition",
+      "visualisation"
+    ]
+  },
+  {
+    "slug": "zero-sum-game",
+    "path": "/zero-sum-game",
+    "title": "Zero Sum Game",
+    "pageDescription": "Zero Sum Game is a fun mix of math and chess—make clever placements until every attacked square sums to zero.",
+    "metaDescription": "Zero Sum Game is a fun mix of math and chess—make clever placements until every attacked square sums to zero.",
+    "cardDescription": "Balance math and chess—place pieces to hit zero.",
+    "icon": "FaCalculator",
+    "gradient": "bg-gradient-to-br from-yellow-900/40 to-orange-900/40",
+    "coverPhoto": "/media/cropped_zero_sum.jpeg",
+    "category": "Atypical",
+    "tags": [
+      "math",
+      "intuition"
+    ]
+  }
+]
