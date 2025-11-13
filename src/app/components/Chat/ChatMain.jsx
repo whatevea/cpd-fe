@@ -23,8 +23,6 @@ import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "@/app/utils/apiClient";
 
 const MESSAGE_CHAR_LIMIT = 600;
-const BACKGROUND_REFRESH_MS = 45_000;
-
 const CONNECTION_META = {
   connected: {
     label: "Live updates on",
@@ -72,10 +70,11 @@ export default function Chat({ variant = "auto" }) {
     nextCursor: null,
     latestMessageId: messages[0]?._id || null,
   });
+  const latestMessageIdRef = useRef(messages[0]?._id || null);
+  const hasFetchedInitialMessagesRef = useRef(false);
   const [isAutoscrollLocked, setIsAutoscrollLocked] = useState(false);
   const messagesEndRef = useRef(null);
   const chatBodyRef = useRef(null);
-  const channelRef = useRef(null);
   // This ref is used to prevent autoscroll when user scrolls up
   const autoScrollLockRef = useRef(false);
 
@@ -103,8 +102,6 @@ export default function Chat({ variant = "auto" }) {
   }, []);
 
   const getCentrifugoAuthToken = useCallback(async () => {
-    // For unauthenticated users, we can get a public token.
-    // The backend should handle this and provide a token for a public channel.
     const response = await apiFetch("/api/chat/get_connection_token", {
       headers: {
         ...(user?.token && { Authorization: `Bearer ${user.token}` }),
@@ -112,7 +109,7 @@ export default function Chat({ variant = "auto" }) {
     });
     const data = await response.json();
     return data.token;
-  }, [user?.token, isAuthenticated]);
+  }, [user?.token]);
 
   useEffect(() => {
     autoScrollLockRef.current = isAutoscrollLocked;
@@ -126,9 +123,57 @@ export default function Chat({ variant = "auto" }) {
     setIsAutoscrollLocked(!isNearBottom);
   };
 
+  const handleNewMessage = useCallback(
+    (data) => {
+      if (!data) return;
+
+      const normalizedMessage =
+        typeof data.user === "string"
+          ? {
+            ...data,
+            user: {
+              _id: data.user,
+              username:
+                data.user === loggedInUserId
+                  ? loggedInUserName
+                  : data.username || "Unknown User",
+            },
+          }
+          : data;
+
+      appendMessage(normalizedMessage);
+      setMeta((prev) => {
+        const nextLatestId =
+          normalizedMessage?._id ||
+          normalizedMessage?.tempId ||
+          normalizedMessage?.createdAt ||
+          prev.latestMessageId;
+
+        if (!nextLatestId || prev.latestMessageId === nextLatestId) {
+          return prev;
+        }
+
+        latestMessageIdRef.current = nextLatestId;
+        return { ...prev, latestMessageId: nextLatestId };
+      });
+    },
+    [appendMessage, loggedInUserId, loggedInUserName]
+  );
+
+  const tearDownRealtime = useCallback(() => {
+    if (subscriptionRef.current) {
+      subscriptionRef.current.unsubscribe();
+      subscriptionRef.current = null;
+    }
+    if (centrifugeRef.current) {
+      centrifugeRef.current.disconnect();
+      centrifugeRef.current = null;
+    }
+  }, []);
+
   const fetchMessages = useCallback(
-    async ({ cursor, silent } = {}) => {
-      if (!cursor && !silent) {
+    async ({ cursor } = {}) => {
+      if (!cursor) {
         setIsFetching(true);
         setFetchError("");
       }
@@ -136,15 +181,18 @@ export default function Chat({ variant = "auto" }) {
         setIsFetchingOlder(true);
       }
       try {
+        const headers = {
+          ...(user?.token && { Authorization: `Bearer ${user.token}` }),
+        };
+        const latestMessageId = latestMessageIdRef.current;
+        if (!cursor && latestMessageId) {
+          headers["If-None-Match"] = latestMessageId;
+        }
+
         const response = await apiFetch(
           `/api/chat/getMessages${cursor ? `?before=${cursor}` : ""}`,
           {
-            headers: {
-              ...(user?.token && { Authorization: `Bearer ${user.token}` }),
-              ...(meta.latestMessageId && !cursor
-                ? { "If-None-Match": meta.latestMessageId }
-                : {}),
-            },
+            headers,
             cache: "no-store",
           }
         );
@@ -167,14 +215,32 @@ export default function Chat({ variant = "auto" }) {
 
         setMessages(incoming, { mode: cursor ? "append" : "replace" });
 
-        setMeta((prev) => ({
-          hasMore: Boolean(payload?.meta?.hasMore),
-          nextCursor: payload?.meta?.nextCursor || null,
-          latestMessageId:
+        setMeta((prev) => {
+          const hasMore = Boolean(payload?.meta?.hasMore);
+          const nextCursor = payload?.meta?.nextCursor || null;
+          const latestFromPayload =
             !cursor && payload?.meta?.latestMessageId
               ? payload.meta.latestMessageId
-              : prev.latestMessageId,
-        }));
+              : prev.latestMessageId;
+
+          if (!cursor && payload?.meta?.latestMessageId) {
+            latestMessageIdRef.current = payload.meta.latestMessageId;
+          }
+
+          if (
+            prev.hasMore === hasMore &&
+            prev.nextCursor === nextCursor &&
+            prev.latestMessageId === latestFromPayload
+          ) {
+            return prev;
+          }
+
+          return {
+            hasMore,
+            nextCursor,
+            latestMessageId: latestFromPayload,
+          };
+        });
 
         if (!cursor && !autoScrollLockRef.current) {
           requestAnimationFrame(scrollToBottom);
@@ -185,7 +251,7 @@ export default function Chat({ variant = "auto" }) {
           setFetchError(error.message || "Unable to load messages.");
         }
       } finally {
-        if (!cursor && !silent) {
+        if (!cursor) {
           setIsFetching(false);
         }
         if (cursor) {
@@ -193,7 +259,7 @@ export default function Chat({ variant = "auto" }) {
         }
       }
     },
-    [user?.token, meta.latestMessageId, scrollToBottom, setMessages, isAuthenticated]
+    [user?.token, scrollToBottom, setMessages]
   );
 
   const sendMessage = async (event) => {
@@ -233,79 +299,91 @@ export default function Chat({ variant = "auto" }) {
   };
 
   useEffect(() => {
+    if (hasFetchedInitialMessagesRef.current) return;
+    hasFetchedInitialMessagesRef.current = true;
     fetchMessages();
-
-    const intervalId = setInterval(
-      () => fetchMessages({ silent: true }),
-      BACKGROUND_REFRESH_MS
-    );
-
-    const handleFocus = () => fetchMessages({ silent: true });
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener("focus", handleFocus);
-    };
   }, [fetchMessages]);
 
-  // Setup Centrifugo realtime updates and connection state tracking
   useEffect(() => {
     if (!isAuthenticated) {
-      // Ensure cleanup if user logs out or token is unavailable
-      if (centrifugeRef.current) {
-        centrifugeRef.current.disconnect();
-        centrifugeRef.current = null;
-      }
-      if (subscriptionRef.current) {
-        subscriptionRef.current.unsubscribe();
-        subscriptionRef.current = null;
-      }
+      tearDownRealtime();
+      setConnectionState("disconnected");
+      return;
     }
+
+    let cancelled = false;
+    tearDownRealtime();
 
     const connectRealtime = async () => {
       setConnectionState("connecting");
       try {
         const token = await getCentrifugoAuthToken();
         if (!token) {
-          setConnectionState("failed");
+          if (!cancelled) {
+            setConnectionState("failed");
+          }
           return;
         }
 
         const socketUrl = buildSocketUrl();
         if (!socketUrl) {
           console.error("Centrifugo socket URL is not configured.");
-          setConnectionState("failed");
+          if (!cancelled) {
+            setConnectionState("failed");
+          }
+          return;
+        }
+
+        const channel = import.meta.env.VITE_CENTRIFUGO_CHAT_NAMESPACE;
+        if (!channel) {
+          console.error("Centrifugo chat namespace is not configured.");
+          if (!cancelled) {
+            setConnectionState("failed");
+          }
           return;
         }
 
         const centrifuge = new Centrifuge(socketUrl, { token });
         centrifugeRef.current = centrifuge;
 
-        centrifuge.on("connecting", () => setConnectionState("connecting"));
-        centrifuge.on("connected", () => setConnectionState("connected"));
-        centrifuge.on("disconnected", () => setConnectionState("disconnected"));
+        centrifuge.on("connecting", () => {
+          if (!cancelled) {
+            setConnectionState("connecting");
+          }
+        });
+        centrifuge.on("connected", () => {
+          if (!cancelled) {
+            setConnectionState("connected");
+          }
+        });
+        centrifuge.on("disconnected", () => {
+          if (!cancelled) {
+            setConnectionState("disconnected");
+          }
+        });
         centrifuge.on("error", (ctx) => {
+          if (cancelled) return;
           console.error("Centrifugo connection error", ctx);
           setConnectionState("failed");
         });
-
-        const channel = isAuthenticated && loggedInUserId ? `chat:${loggedInUserId}` : "chat:public";
 
         const subscription = centrifuge.newSubscription(channel);
         subscriptionRef.current = subscription;
 
         subscription.on("publication", ({ data }) => {
-          // Centrifugo sends the actual message data in `data` property of publication
-          handleNewMessage(data);
+          if (!cancelled) {
+            handleNewMessage(data);
+          }
         });
         subscription.on("error", (ctx) => {
+          if (cancelled) return;
           console.error("Centrifugo subscription error", ctx);
-          setConnectionState("failed"); // Or a more specific subscription error state
+          setConnectionState("failed");
         });
         subscription.subscribe();
         centrifuge.connect();
       } catch (error) {
+        if (cancelled) return;
         console.error("Unable to establish Centrifugo connection", error);
         setConnectionState("failed");
       }
@@ -314,42 +392,15 @@ export default function Chat({ variant = "auto" }) {
     connectRealtime();
 
     return () => {
-      const handleNewMessage = (data) => {
-        if (typeof data.user === "string") {
-          const isCurrentUser = data.user === loggedInUserId;
-          data.user = {
-            _id: data.user,
-            username: isCurrentUser
-              ? loggedInUserName
-              : data.username || "Unknown User",
-          };
-        }
-
-        appendMessage(data); // Assuming data is the message object
-        setMeta((prev) => ({
-          ...prev,
-          latestMessageId: data?._id || prev.latestMessageId,
-        }));
-      };
-
-      if (subscriptionRef.current) {
-        subscriptionRef.current.unsubscribe();
-        subscriptionRef.current = null;
-      }
-      if (centrifugeRef.current) {
-        centrifugeRef.current.disconnect();
-        centrifugeRef.current = null;
-      }
+      cancelled = true;
+      tearDownRealtime();
     };
   }, [
     isAuthenticated,
-    user?.token,
-    loggedInUserId,
-    loggedInUserName,
     getCentrifugoAuthToken,
     buildSocketUrl,
-    appendMessage,
-    // handleNewMessage is defined inside this effect, so it doesn't need to be a dependency
+    handleNewMessage,
+    tearDownRealtime,
   ]);
 
   useEffect(() => { // Auto-scroll effect
@@ -359,13 +410,13 @@ export default function Chat({ variant = "auto" }) {
   }, [messages, isAutoscrollLocked, scrollToBottom]);
 
   useEffect(() => {
-    if (messages[0]?._id) {
-      setMeta((prev) =>
-        prev.latestMessageId === messages[0]._id
-          ? prev
-          : { ...prev, latestMessageId: messages[0]._id }
-      );
-    }
+    const newestId = messages[0]?._id || null;
+    latestMessageIdRef.current = newestId;
+    setMeta((prev) =>
+      prev.latestMessageId === newestId
+        ? prev
+        : { ...prev, latestMessageId: newestId }
+    );
   }, [messages]);
 
   const orderedMessages = useMemo(() => {
@@ -381,7 +432,7 @@ export default function Chat({ variant = "auto" }) {
 
   const chatContent = (
     <>
-      <div className="flex flex-col gap-3 flex-1">
+      <div className="flex flex-col gap-3 flex-1 max-h-screen overflow-auto">
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
             <span className={`w-2 h-2 ${statusMeta.dot}`} />
@@ -389,19 +440,7 @@ export default function Chat({ variant = "auto" }) {
               {statusMeta.label} {connectionState === "failed" && <IoWarningOutline className="inline-block ml-1 text-base" />}
             </p>
           </div>
-          <div className="flex items-center gap-3 text-white/70">
-            <button
-              className="inline-flex items-center gap-2 border border-[#2d3449] bg-[#161c2b] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-100 transition hover:bg-[#1f2638] disabled:opacity-40"
-              onClick={() => fetchMessages()}
-              disabled={isFetching}
-            >
-              <FiRefreshCcw className={isFetching ? "animate-spin" : ""} />
-              Refresh
-            </button>
-            <p className="hidden sm:block text-[10px] uppercase text-white/50 tracking-widest">
-              Mention @ai for instant analysis
-            </p>
-          </div>
+
         </div>
 
         <div className="relative flex-1">
@@ -533,9 +572,7 @@ export default function Chat({ variant = "auto" }) {
             <p className="text-[11px] uppercase tracking-[0.4em] text-[#8a96c9]">
               Community
             </p>
-            <p className="text-lg font-semibold text-white">
-              #general-discussion
-            </p>
+
           </div>
           <Link
             to="/chat"
@@ -545,7 +582,7 @@ export default function Chat({ variant = "auto" }) {
             Full chat
           </Link>
         </div>
-        <div className="flex flex-1 flex-col p-4">{chatContent}</div>
+        <div className="flex flex-1 flex-col">{chatContent}</div>
       </div>
     );
   }

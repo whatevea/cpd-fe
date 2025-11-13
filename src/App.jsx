@@ -9,7 +9,7 @@ function App() {
     <div className="min-h-screen bg-[#092327] text-white">
       <LoadingWrapper>
         <Navbar />
-        <main className="pt-20 min-h-screen">
+        <main className=" min-h-screen">
           <Suspense
             fallback={
               <div className="text-center text-white py-10">Loading…</div>

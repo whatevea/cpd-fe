@@ -7,7 +7,7 @@ import useUserStore from "@/app/storage/userInfo";
 import ChatMain from "./ChatMain";
 
 const GuestPreview = () => (
-  <div className="flex min-h-[560px] flex-col justify-between border border-[#2f3b56] bg-[#151b2e] p-6 text-white shadow-[0_15px_60px_rgba(0,0,0,0.45)]">
+  <div className="flex max-h-screen flex-col justify-between border border-[#2f3b56] bg-[#151b2e] p-6 text-white shadow-[0_15px_60px_rgba(0,0,0,0.45)]">
     <div>
       <p className="text-[11px] uppercase tracking-[0.4em] text-[#8a96c9]">Community</p>
       <h3 className="mt-4 text-2xl font-semibold">

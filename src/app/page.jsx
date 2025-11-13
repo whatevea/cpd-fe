@@ -108,7 +108,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#101622] text-white">
-      <main className="mx-auto flex w-full flex-col gap-8 px-4 pb-12 pt-28 lg:grid lg:w-[85%] lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:px-0 xl:w-[80%]">
+      <main className="mx-auto flex w-full flex-col gap-8 px-4 pb-12 pt-28 lg:grid lg:w-[90%] lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:px-0 xl:w-[80%]">
         <section className="w-full">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h1 className="text-4xl font-black tracking-tight text-white">
