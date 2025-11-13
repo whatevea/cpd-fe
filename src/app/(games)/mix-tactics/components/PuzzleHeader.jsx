@@ -7,7 +7,7 @@ export const PuzzleHeader = ({ turn, isSoundEnabled, onSoundToggle }) => (
       <div>
         <span className="flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-white/60">
           <FaChessKing className="h-4 w-4 text-[#8ee1b7]" />
-          Daily tactics
+          Mix Tactics
         </span>
         <p className="mt-3 text-2xl font-semibold">
           {turn ? `${turn} to move` : "Loading puzzle…"}
