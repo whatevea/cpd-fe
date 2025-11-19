@@ -1,59 +1,9 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiChevronsLeft, FiChevronsRight, FiMessageSquare } from "react-icons/fi";
-import { IoChatbubbleEllipses } from "react-icons/io5";
-import { Link } from "react-router-dom";
-import useUserStore from "@/app/storage/userInfo";
+import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
 import ChatMain from "./ChatMain";
 
-const GuestPreview = () => (
-  <div className="flex max-h-screen flex-col justify-between border border-[#2f3b56] bg-[#151b2e] p-6 text-white shadow-[0_15px_60px_rgba(0,0,0,0.45)]">
-    <div>
-      <p className="text-[11px] uppercase tracking-[0.4em] text-[#8a96c9]">Community</p>
-      <h3 className="mt-4 text-2xl font-semibold">
-        Sign in to join <span className="text-[#8ee1b7]">live chat</span>
-      </h3>
-      <p className="mt-3 text-sm text-white/70">
-        Log in with Google or Lichess to drop puzzles, mention{" "}
-        <span className="text-[#8ee1b7]">@ai</span>, and keep your shoutouts linked
-        to your profile.
-      </p>
-    </div>
-
-    <div className="space-y-4">
-      <div className="rounded-xl border border-[#2b3347] bg-[#10162a] p-4 text-sm text-white/70">
-        <div className="flex items-center gap-3 text-white">
-          <IoChatbubbleEllipses className="text-xl text-[#8ee1b7]" />
-          <span className="text-xs uppercase tracking-[0.4em] text-[#8a96c9]">
-            What you get
-          </span>
-        </div>
-        <ul className="mt-3 space-y-2 text-white/70">
-          {[
-            "Realtime global lobby with smart caching",
-            "Mention @ai for instant replies",
-            "Profile linked shoutouts with moderation",
-          ].map((item) => (
-            <li key={item} className="flex items-start gap-2 text-sm">
-              <span className="mt-1 size-1 rounded-full bg-[#8ee1b7]" />
-              {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <Link
-        to="/account"
-        className="inline-flex w-full items-center justify-center border border-[#2f3b56] bg-[#8ee1b7] px-4 py-3 text-sm font-bold uppercase tracking-[0.3em] text-[#071221] transition hover:bg-[#9af0c4]"
-      >
-        Go to login
-      </Link>
-    </div>
-  </div>
-);
-
 export default function ChatSidebar({ className = "" }) {
-  const { isAuthenticated } = useUserStore();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const containerClasses = useMemo(
@@ -121,11 +71,7 @@ export default function ChatSidebar({ className = "" }) {
               transition={{ type: "spring", stiffness: 180, damping: 26 }}
               className="h-full"
             >
-              {isAuthenticated ? (
-                <ChatMain variant="panel" />
-              ) : (
-                <GuestPreview />
-              )}
+              <ChatMain variant="panel" />
             </motion.div>
           ) : (
             <motion.div

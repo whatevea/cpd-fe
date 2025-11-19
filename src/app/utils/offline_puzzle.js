@@ -1,7 +1,19 @@
-let puzzleArray = [];
-let filteredPuzzlesCache = [];
+let allPuzzles = [];
+let nonPromoPuzzles = [];
 let storePromise = null;
 let loadPromise = null;
+
+//  data structure is like this PuzzleId,FEN,Moves,Rating,RatingDeviation,Popularity,NbPlays,Themes,TotalPieces
+// 00008,r6k/pp2r2p/4Rp1Q/3p4/8/1N1P2R1/PqP2bPP/7K b - - 0 24,f2g3 e6e7 b2b1 b3c1 b1c1 h6c1,1838,75,95,7002,crushing hangingPiece long middlegame,20
+
+const getRandomItem = (arr) =>
+  arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
+
+const isNonPromotional = (puzzle) => {
+  const themes = puzzle?.Themes;
+  // Assume safe if Themes is missing, otherwise check for 'promotion'
+  return typeof themes !== "string" || !themes.includes("promotion");
+};
 
 const getPuzzleStore = async () => {
   if (!storePromise) {
@@ -10,65 +22,45 @@ const getPuzzleStore = async () => {
   return storePromise;
 };
 
-const loadPuzzlesFromStorage = async () => {
-  const store = await getPuzzleStore();
-  if (!store) return [];
 
+const loadPuzzlesFromStorage = async () => {
   try {
+    const store = await getPuzzleStore();
+    if (!store) return [];
     const data = await store.getItem("puzzlesArray");
-    puzzleArray = Array.isArray(data) ? data.filter(Boolean) : [];
-    filteredPuzzlesCache = puzzleArray.filter((puzzle) => {
-      if (!puzzle) return false;
-      // If Themes is missing, we assume it's safe (or unsafe? let's assume safe but log warning if needed, 
-      // but actually if we want "no promotion", we should be careful. 
-      // If Themes is missing, we can't know if it has promotion. 
-      // Let's assume if it's missing it's NOT a promotion puzzle unless proven otherwise.)
-      const themes = puzzle.Themes || "";
-      return typeof themes === "string" && !themes.includes("promotion");
-    });
+    allPuzzles = Array.isArray(data) ? data.filter(Boolean) : [];
+    nonPromoPuzzles = allPuzzles.filter(isNonPromotional);
+
   } catch (error) {
     console.error("Failed to load offline puzzles:", error);
-    puzzleArray = [];
-    filteredPuzzlesCache = [];
+    allPuzzles = [];
+    nonPromoPuzzles = [];
   }
 
-  return puzzleArray;
+  return allPuzzles;
 };
 
 const ensurePuzzlesReady = async () => {
-  // If we have puzzles in memory, return them
-  if (puzzleArray.length) return puzzleArray;
+  if (allPuzzles.length) return allPuzzles;
 
-  // If a load is already in progress, wait for it
-  if (loadPromise) {
-    await loadPromise;
-    // After waiting, check if we got puzzles. If so, return them.
-    if (puzzleArray.length) return puzzleArray;
+  // If not loading, start loading
+  if (!loadPromise) {
+    loadPromise = loadPuzzlesFromStorage().finally(() => {
+      loadPromise = null; // Allow retries on future calls
+    });
   }
 
-  // If we are here, it means either:
-  // 1. We haven't tried loading yet.
-  // 2. We tried loading before, but it was empty (maybe hydration wasn't done).
-  // So we should try loading from storage again.
-
-  loadPromise = loadPuzzlesFromStorage().finally(() => {
-    loadPromise = null;
-  });
-
   await loadPromise;
-  return puzzleArray;
+  return allPuzzles;
 };
 
+
 export const getRandomPuzzleOffline = async () => {
-  const puzzles = await ensurePuzzlesReady();
-  if (!puzzles.length) return null;
-  return puzzles[Math.floor(Math.random() * puzzles.length)];
+  await ensurePuzzlesReady();
+  return getRandomItem(allPuzzles);
 };
 
 export const getRandomPuzzleOfflineNoPromotion = async () => {
   await ensurePuzzlesReady();
-  if (!filteredPuzzlesCache.length) return null;
-  return filteredPuzzlesCache[
-    Math.floor(Math.random() * filteredPuzzlesCache.length)
-  ];
+  return getRandomItem(nonPromoPuzzles);
 };

@@ -305,12 +305,6 @@ export default function Chat({ variant = "auto" }) {
   }, [fetchMessages]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      tearDownRealtime();
-      setConnectionState("disconnected");
-      return;
-    }
-
     let cancelled = false;
     tearDownRealtime();
 

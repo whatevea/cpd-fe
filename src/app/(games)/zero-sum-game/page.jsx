@@ -12,7 +12,7 @@ import { getGameConfig } from "@/app/constants/gameConfig";
 import GamePageLayout from "@/app/components/Layout/GamePageLayout";
 
 const soundMap = {
-  pop: "/media/pop.mp3",
+  pop: "/media/popnew.mp3",
   win: "/media/victory.mp3",
   move: "/media/movesound.mp3",
 };
