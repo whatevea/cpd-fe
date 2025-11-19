@@ -560,7 +560,7 @@ export default function Chat({ variant = "auto" }) {
 
   if (isPanel) {
     return (
-      <div className="flex min-h-[620px] flex-col border border-[#282e39] bg-[#151b2e]">
+      <div className="flex min-h-screen flex-col border border-[#282e39] bg-[#151b2e]">
         <div className="flex items-center justify-between border-b border-[#282e39] px-5 py-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.4em] text-[#8a96c9]">
