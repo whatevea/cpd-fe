@@ -12,7 +12,6 @@ import {
   FiChevronDown,
   FiAlertTriangle,
   FiWifiOff,
-  FiRefreshCcw,
   FiUsers,
 } from "react-icons/fi";
 import { HiOutlineRefresh } from "react-icons/hi";
@@ -21,7 +20,7 @@ import { Centrifuge } from "centrifuge";
 import MessageBubble from "./MessageBubble";
 import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "@/app/utils/apiClient";
-
+import ChatHeader from "./ChatHeader";
 const MESSAGE_CHAR_LIMIT = 600;
 const CONNECTION_META = {
   connected: {
@@ -50,6 +49,8 @@ const CONNECTION_META = {
     dot: "bg-rose-400",
   },
 };
+
+
 
 export default function Chat({ variant = "auto" }) {
   const location = useLocation();
@@ -424,134 +425,136 @@ export default function Chat({ variant = "auto" }) {
   const statusMeta =
     CONNECTION_META[connectionState] || CONNECTION_META.disconnected;
 
+  const chatContainerClasses = [
+    "flex flex-1 min-h-0 flex-col overflow-hidden",
+    isFullPage || isPanel ? "max-h-screen" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   const chatContent = (
-    <>
-      <div className="flex flex-col gap-3 flex-1 max-h-screen overflow-auto">
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 ${statusMeta.dot}`} />
-            <p className={`${statusMeta.tone} font-semibold uppercase`}>
-              {statusMeta.label} {connectionState === "failed" && <IoWarningOutline className="inline-block ml-1 text-base" />}
-            </p>
-          </div>
+    <div className={chatContainerClasses}>
 
-        </div>
+      <ChatHeader
+        statusMeta={statusMeta}
+        connectionState={connectionState}
+        showFullChatCTA={!isFullPage}
+      />
 
-        <div className="relative flex-1">
-          <div
-            ref={chatBodyRef}
-            onScroll={handleScroll}
-            className="flex-1 overflow-y-auto border border-[#282e39] bg-[#0d1422] p-4 space-y-4"
-          >
-            {fetchError ? (
-              <div className="flex flex-col items-center justify-center text-center gap-3 py-10 text-white/70">
-                <FiAlertTriangle className="text-3xl text-amber-300" />
-                <div>
-                  <p className="font-semibold mb-1">Unable to load chat</p>
-                  <p className="text-sm text-white/60 max-w-xs">
-                    {fetchError}
-                  </p>
-                </div>
-                <button
-                  className="inline-flex items-center gap-2 border border-[#2d3449] bg-[#161c2b] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-white hover:bg-[#1f2638]"
-                  onClick={() => fetchMessages()}
-                >
-                  <HiOutlineRefresh className="animate-spin" />
-                  Try again
-                </button>
-              </div>
-            ) : isFetching && !messages.length ? (
-              <div className="flex justify-center items-center h-[60vh]">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 1 }}
-                  className="text-[#819d25]"
-                >
-                  <HiOutlineRefresh className="w-8 h-8" />
-                </motion.div>
-              </div>
-            ) : (
-              <>
-                {meta.hasMore && (
-                  <button
-                    disabled={isFetchingOlder}
-                    onClick={() =>
-                      fetchMessages({ cursor: meta.nextCursor || undefined })
-                    }
-                    className="w-full border border-[#2d3449] bg-[#11182c] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-[#161b2a] disabled:opacity-50"
-                  >
-                    {isFetchingOlder ? "Loading older messages…" : "Load previous messages"}
-                  </button>
-                )}
-
-                {orderedMessages.length === 0 ? (
-                  <div className="text-center text-white/60 py-10">
-                    <p className="font-semibold text-white">
-                      Be the first to say hi 👋
-                    </p>
-                    <p className="text-sm mt-1">
-                      Share a thought or type <span className="text-[#819d25]">@ai</span>{" "}
-                      to ask the assistant.
+      <div className="flex flex-1 min-h-0 flex-col bg-[#050c19]">
+        <div className="flex-1 min-h-0 overflow-hidden p-4">
+          <div className="relative h-full">
+            <div
+              ref={chatBodyRef}
+              onScroll={handleScroll}
+              className="h-full overflow-y-auto border border-[#282e39] bg-[#0d1422] p-4 space-y-4"
+            >
+              {fetchError ? (
+                <div className="flex flex-col items-center justify-center text-center gap-3 py-10 text-white/70">
+                  <FiAlertTriangle className="text-3xl text-amber-300" />
+                  <div>
+                    <p className="font-semibold mb-1">Unable to load chat</p>
+                    <p className="text-sm text-white/60 max-w-xs">
+                      {fetchError}
                     </p>
                   </div>
-                ) : (
-                  <AnimatePresence mode="popLayout">
-                    {orderedMessages.map((msg, index) => (
-                      <MessageBubble
-                        key={msg._id || `${msg.createdAt}-${index}`}
-                        message={msg}
-                        loggedInUserName={loggedInUserName}
-                        loggedInUserId={loggedInUserId}
-                      />
-                    ))}
-                  </AnimatePresence>
-                )}
-              </>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+                  <button
+                    className="inline-flex items-center gap-2 border border-[#2d3449] bg-[#161c2b] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-white hover:bg-[#1f2638]"
+                    onClick={() => fetchMessages()}
+                  >
+                    <HiOutlineRefresh className="animate-spin" />
+                    Try again
+                  </button>
+                </div>
+              ) : isFetching && !messages.length ? (
+                <div className="flex justify-center items-center h-[60vh]">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1 }}
+                    className="text-[#819d25]"
+                  >
+                    <HiOutlineRefresh className="w-8 h-8" />
+                  </motion.div>
+                </div>
+              ) : (
+                <>
+                  {meta.hasMore && (
+                    <button
+                      disabled={isFetchingOlder}
+                      onClick={() =>
+                        fetchMessages({ cursor: meta.nextCursor || undefined })
+                      }
+                      className="w-full border border-[#2d3449] bg-[#11182c] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-[#161b2a] disabled:opacity-50"
+                    >
+                      {isFetchingOlder ? "Loading older messages…" : "Load previous messages"}
+                    </button>
+                  )}
 
-          {isAutoscrollLocked && (
-            <button
-              onClick={() => {
-                setIsAutoscrollLocked(false);
-                scrollToBottom();
-              }}
-              className="absolute left-0 right-0 bottom-24 mx-auto flex w-48 items-center justify-center border border-[#135bec] bg-[#135bec] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.3em] text-white"
-            >
-              Jump to latest
-            </button>
-          )}
-
-          {connectionState === "disconnected" && (
-            <div className="absolute inset-x-0 top-2 mx-auto flex w-fit items-center gap-1 border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-[10px] uppercase tracking-widest text-rose-200">
-              <FiWifiOff />
-              Realtime paused
+                  {orderedMessages.length === 0 ? (
+                    <div className="text-center text-white/60 py-10">
+                      <p className="font-semibold text-white">
+                        Be the first to say hi 👋
+                      </p>
+                      <p className="text-sm mt-1">
+                        Share a thought or type <span className="text-[#819d25]">@ai</span>{" "}
+                        to ask the assistant.
+                      </p>
+                    </div>
+                  ) : (
+                    <AnimatePresence mode="popLayout">
+                      {orderedMessages.map((msg, index) => (
+                        <MessageBubble
+                          key={msg._id || `${msg.createdAt}-${index}`}
+                          message={msg}
+                          loggedInUserName={loggedInUserName}
+                          loggedInUserId={loggedInUserId}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  )}
+                </>
+              )}
+              <div ref={messagesEndRef} />
             </div>
-          )}
-        </div>
-      </div>
 
-      <ChatInput
-        onSubmit={sendMessage}
-        value={newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
-        isLoading={isLoading}
-        maxLength={MESSAGE_CHAR_LIMIT}
-        disabled={!isAuthenticated}
-        errorMessage={submitError}
-      />
-    </>
+            {isAutoscrollLocked && (
+              <button
+                onClick={() => {
+                  setIsAutoscrollLocked(false);
+                  scrollToBottom();
+                }}
+                className="absolute left-0 right-0 bottom-24 mx-auto flex w-48 items-center justify-center border border-[#135bec] bg-[#135bec] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.3em] text-white"
+              >
+                Jump to latest
+              </button>
+            )}
+
+            {connectionState === "disconnected" && (
+              <div className="absolute inset-x-0 top-2 mx-auto flex w-fit items-center gap-1 border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-[10px] uppercase tracking-widest text-rose-200">
+                <FiWifiOff />
+                Realtime paused
+              </div>
+            )}
+          </div>
+        </div>
+
+        <ChatInput
+          onSubmit={sendMessage}
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          isLoading={isLoading}
+          maxLength={MESSAGE_CHAR_LIMIT}
+          disabled={!isAuthenticated}
+          errorMessage={submitError}
+        />
+      </div>
+    </div>
   );
 
   if (isFullPage) {
     return (
-      <div className="h-screen pt-10 p-4 bg-[#092327]">
-        <div className="max-w-4xl mx-auto h-full flex flex-col">
-          <h1 className="text-2xl font-bold text-primary_white mb-4 flex items-center gap-2">
-            <IoChatbubbleEllipses className="text-[#819d25]" />
-            Chess Community Chat
-          </h1>
+      <div className="h-screen bg-[#092327] p-4 pt-10">
+        <div className="mx-auto flex h-full max-w-4xl flex-col overflow-hidden border border-[#1a283a] bg-[#030915]/90 shadow-2xl">
           {chatContent}
         </div>
       </div>
@@ -560,23 +563,8 @@ export default function Chat({ variant = "auto" }) {
 
   if (isPanel) {
     return (
-      <div className="flex min-h-screen flex-col border border-[#282e39] bg-[#151b2e]">
-        <div className="flex items-center justify-between border-b border-[#282e39] px-5 py-4">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.4em] text-[#8a96c9]">
-              Community
-            </p>
-
-          </div>
-          <Link
-            to="/chat"
-            className="inline-flex items-center gap-2 border border-[#2e3750] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8aa0ff] transition hover:border-[#135bec] hover:text-white"
-          >
-            <FiUsers className="text-base" />
-            Full chat
-          </Link>
-        </div>
-        <div className="flex flex-1 flex-col">{chatContent}</div>
+      <div className="flex h-full max-h-screen flex-col border border-[#282e39] bg-[#151b2e]">
+        {chatContent}
       </div>
     );
   }
@@ -591,17 +579,7 @@ export default function Chat({ variant = "auto" }) {
         className="cursor-pointer bg-black/70 backdrop-blur-lg p-4 flex items-center justify-between border-b border-white/10"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center gap-3">
-          <IoChatbubbleEllipses className="text-2xl text-[#819d25]" />
-          <h2 className="text-lg font-semibold text-primary_white">
-            Chess Chat
-          </h2>
-          <motion.div
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-            className="h-2 w-6 bg-[#819d25]"
-          />
-        </div>
+
         <motion.div animate={{ rotate: isExpanded ? 0 : 180 }}>
           <FiChevronDown className="text-xl text-white" />
         </motion.div>

@@ -1,5 +1,5 @@
 import ChatMain from "@/app/components/Chat/ChatMain";
 
 export default function ChatPage() {
-  return <ChatMain />;
+  return <div className="mt-14"> <ChatMain /> </div>;
 }
