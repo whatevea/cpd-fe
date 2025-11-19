@@ -30,6 +30,7 @@ export const usePuzzleGame = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isShaking, setIsShaking] = useState(false);
+  const [isPuzzleComplete, setIsPuzzleComplete] = useState(false);
 
   const retryRef = useRef(0);
   const audioMap = useRef({});
@@ -117,6 +118,7 @@ export const usePuzzleGame = () => {
       }
     } finally {
       setIsLoading(false);
+      setIsPuzzleComplete(false);
     }
   }, [isAuthenticated]);
 
@@ -132,11 +134,9 @@ export const usePuzzleGame = () => {
       fen: prev.raw.FEN,
       moves: prev.raw.Moves.split(" "),
       turn: inferTurn(prev.raw.FEN),
-
-
-
     }));
     setGameIterations((prev) => prev + 1);
+    setIsPuzzleComplete(false);
     setDialogue({
       message: "Puzzle reset. Visualize and try again!",
       tone: "info",
@@ -159,6 +159,7 @@ export const usePuzzleGame = () => {
               : "Solved! Sign in to earn rewards.",
             tone: "success",
           });
+          setIsPuzzleComplete(true);
           break;
         case "correct_move":
           playSound("correct");
@@ -203,6 +204,7 @@ export const usePuzzleGame = () => {
       isShaking,
       isSoundEnabled,
       solveChecker,
+      isPuzzleComplete,
     }),
     [
       gameIterations,
@@ -212,6 +214,7 @@ export const usePuzzleGame = () => {
       puzzle.moves,
       puzzle.turn,
       solveChecker,
+      isPuzzleComplete,
     ]
   );
 

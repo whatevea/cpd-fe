@@ -10,6 +10,7 @@ import { CheckLight } from "./CheckLight";
 import { GreenLight } from "./GreenLight";
 import { SquareHighlight } from "./SquareHighlight";
 import { PromotionDialog } from "./PromotionDialog";
+import { HoveredSquare } from "./HoveredSquare";
 import { Chess } from "chess.js";
 
 const Board = ({
@@ -22,6 +23,7 @@ const Board = ({
   solveChecker,
   isSoundEnabled,
   revertOnWrongMove = false,
+  isPuzzleComplete = false,
 }) => {
   // State
   const [fen, setFen] = useState(fen_);
@@ -31,6 +33,7 @@ const Board = ({
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [lastSelectedFromSquare, setLastSelectedFromSquare] = useState(null);
   const [lastSelectedToSquare, setLastSelectedToSquare] = useState(null);
+  const [hoveredSquare, setHoveredSquare] = useState(null);
 
   // Refs
   const containerRef = useRef(null);
@@ -75,6 +78,23 @@ const Board = ({
     }
   }, [boardSize]);
 
+  const handleMouseMove = (e) => {
+    if (isPuzzleComplete) return;
+    const parent = boardRef.current;
+    if (parent?.contains(e.target)) {
+      const square = calculateSquareFromClick(e);
+      if (square !== hoveredSquare) {
+        setHoveredSquare(square);
+      }
+    } else {
+      setHoveredSquare(null);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredSquare(null);
+  };
+
   // Helper functions
   const playMoveSound = () => {
     if (moveSound.current && isSoundEnabled) {
@@ -104,169 +124,175 @@ const Board = ({
 
   const triggerMove = (move) => {
     try {
-      chessValidator.current.move(move);
-      setTimeout(() => setFen(chessValidator.current.fen()), 500);
-      return true;
+      // This function only validates the move without changing the main state.
+      // A temporary instance is used for validation.
+      const tempChess = new Chess(chessValidator.current.fen());
+      return !!tempChess.move(move);
     } catch (err) {
-      console.log("Invalid move:", err);
-      return false;
+      return false; // Invalid move format
     }
   };
 
-  const revertMoveAnimation = (move) => {
-    if (!move) return;
+  const movePiece = (from, to, isUser = true, promotion) => {
+    const moveObject = { from, to };
+    if (promotion) {
+      moveObject.promotion = promotion;
+    }
+    const moveStrWithPromotion = from + to + (promotion || "");
+    const puzzleMove = moves[0];
 
-    const allPiecesImg = PieceImagesContainer.current.getElementsByTagName("img");
-    const pieceToMove = Array.from(allPiecesImg).find(
-      (img) => img.alt === move.to
-    );
-
-    if (pieceToMove) {
-      const { top, left } = squareCoordinates(
-        move.from,
-        squareSize,
-        boardFlipped
+    // --- Engine moves (always correct) ---
+    if (!isUser) {
+      chessValidator.current.move(puzzleMove);
+      const allPiecesImg =
+        PieceImagesContainer.current.getElementsByTagName("img");
+      const pieceToMove = Array.from(allPiecesImg).find(
+        (img) => img.alt === from
       );
-      const pieceSizeOffset = (squareSize - pieceToMove.width) / 2;
-      playMoveSound();
-      pieceToMove.style.top = `${top + pieceSizeOffset}px`;
-      pieceToMove.style.left = `${left + pieceSizeOffset}px`;
-      pieceToMove.alt = move.from;
-      setTimeout(() => {
-        setFen(chessValidator.current.fen());
-      }, 300);
-    } else {
-      setFen(chessValidator.current.fen());
-    }
-  };
-
-  const checkIfSolved = (lastMove) => {
-    if (moves[0] === lastMove) {
-      solveChecker("correct_move");
-      moves.shift();
-
-      if (moves.length === 0) {
-        solveChecker("game_won");
-      } else {
-        setTimeout(moveContinue, 1000);
+      if (pieceToMove) {
+        const toSquare = puzzleMove.slice(2, 4);
+        const { top, left } = squareCoordinates(
+          toSquare,
+          squareSize,
+          boardFlipped
+        );
+        const pieceSizeOffset = (squareSize - pieceToMove.width) / 2;
+        playMoveSound();
+        pieceToMove.style.top = `${top + pieceSizeOffset}px`;
+        pieceToMove.style.left = `${left + pieceSizeOffset}px`;
+        pieceToMove.alt = toSquare;
       }
-    } else {
-      solveChecker("wrong_move");
-      if (revertOnWrongMove) {
-        const undoneMove = chessValidator.current.undo();
-        revertMoveAnimation(undoneMove);
+      setTimeout(() => setFen(chessValidator.current.fen()), 300);
+      return;
+    }
+
+    // --- User moves ---
+    const isCorrect = puzzleMove === moveStrWithPromotion;
+
+    // For mix-tactics, we don't animate incorrect moves.
+    if (revertOnWrongMove) {
+      if (!triggerMove(moveObject)) {
+        solveChecker("invalid_move");
         setSelectedSquare(null);
+        return;
+      }
+      if (!isCorrect) {
+        solveChecker("wrong_move");
+        setSelectedSquare(null);
+        return; // No animation for incorrect moves.
       }
     }
-  };
 
-  const movePiece = (from, to, isUser = true) => {
+    // --- Correct user move (or other games) ---
+    const moveResult = chessValidator.current.move(moveObject);
+    if (!moveResult) {
+      // This should not happen if puzzle data is correct
+      solveChecker("invalid_move");
+      setSelectedSquare(null);
+      return;
+    }
+    
+    // Animate
     const allPiecesImg =
       PieceImagesContainer.current.getElementsByTagName("img");
     const pieceToMove = Array.from(allPiecesImg).find(
       (img) => img.alt === from
     );
-    if (!pieceToMove) {
-      return;
-    }
-    const pieceIdentity = pieceToMove.getAttribute("pieceinfo");
-    if (
-      isUser &&
-      ((pieceIdentity === "P" &&
-        to[1] === "8" &&
-        +lastSelectedFromSquare[1] === 7) ||
-        (pieceIdentity === "p" &&
-          to[1] === "1" &&
-          +lastSelectedFromSquare[1] === 2))
-    ) {
-      setShowPromotion(pieceIdentity === "P" ? "white" : "black");
-      return;
+    if (pieceToMove) {
+      const { top, left } = squareCoordinates(to, squareSize, boardFlipped);
+      const pieceSizeOffset = (squareSize - pieceToMove.width) / 2;
+      playMoveSound();
+      pieceToMove.style.top = `${top + pieceSizeOffset}px`;
+      pieceToMove.style.left = `${left + pieceSizeOffset}px`;
+      pieceToMove.alt = to;
     }
 
-    if (!triggerMove(`${from}${to}`)) {
-      solveChecker("invalid_move");
-      return;
-    }
+    setTimeout(() => setFen(chessValidator.current.fen()), 300);
+    solveChecker("correct_move");
+    moves.shift();
 
-    // Move animation
-    const { top, left } = squareCoordinates(to, squareSize, boardFlipped);
-    const pieceSizeOffset = (squareSize - pieceToMove.width) / 2;
-    playMoveSound();
-    pieceToMove.style.top = `${top + pieceSizeOffset}px`;
-    pieceToMove.style.left = `${left + pieceSizeOffset}px`;
-    pieceToMove.alt = to;
-
-    if (isUser) {
-      checkIfSolved(`${from}${to}`);
+    if (moves.length === 0) {
+      solveChecker("game_won");
+    } else {
+      setTimeout(moveContinue, 1000);
     }
+    setSelectedSquare(null);
   };
 
   const handleSquareClick = (event) => {
+    if (isPuzzleComplete || showPromotion) {
+      return;
+    }
     const clickedSquare = calculateSquareFromClick(event);
-    const allPiecesImg =
-      PieceImagesContainer.current.getElementsByTagName("img");
-    const pieceToMove = Array.from(allPiecesImg).find(
-      (img) => img.alt === clickedSquare
-    );
-
-    // If no piece is found at clicked square
-    if (!pieceToMove) {
-      // If a piece was previously selected, try to move to empty square
-      if (selectedSquare) {
-        movePiece(selectedSquare, clickedSquare);
-        setSelectedSquare(null);
-        setLastSelectedToSquare(clickedSquare);
-      }
-      return;
-    }
-
-    // Don't allow moves during promotion selection
-    if (showPromotion) {
-      return;
-    }
-
-    const pieceInfo = pieceToMove.getAttribute("pieceinfo");
-    // Check if piece belongs to current player's turn
-    // boardFlipped = true if it is black's turn
-    if (
-      (!selectedSquare && pieceInfo.charCodeAt(0) > 96 && !boardFlipped) ||
-      (!selectedSquare && pieceInfo.charCodeAt(0) < 96 && boardFlipped)
-    ) {
-      return;
-    }
-
-    // If a piece was previously selected
+    
     if (selectedSquare) {
-      // If clicking same square, deselect
       if (selectedSquare === clickedSquare) {
-        setSelectedSquare(null);
+        setSelectedSquare(null); // Deselect
         return;
       }
-      // Try to move to new square
-      movePiece(selectedSquare, clickedSquare);
-      setSelectedSquare(null);
+
+      const allPiecesImg = PieceImagesContainer.current.getElementsByTagName("img");
+      const pieceToMove = Array.from(allPiecesImg).find(
+        (img) => img.alt === selectedSquare
+      );
+      const pieceIdentity = pieceToMove?.getAttribute("pieceinfo");
+
+      // Check for promotion
+      if (
+        pieceIdentity &&
+        ((pieceIdentity === "P" && clickedSquare[1] === "8") ||
+          (pieceIdentity === "p" && clickedSquare[1] === "1"))
+      ) {
+          const tempChess = new Chess(chessValidator.current.fen());
+          if (tempChess.move({ from: selectedSquare, to: clickedSquare, promotion: "q" })) {
+            setShowPromotion(pieceIdentity === "P" ? "white" : "black");
+            setLastSelectedToSquare(clickedSquare);
+            return;
+          }
+      }
+      
+      // Regular move
+      movePiece(selectedSquare, clickedSquare, true);
       setLastSelectedToSquare(clickedSquare);
+
     } else {
-      // Select the piece
-      setSelectedSquare(clickedSquare);
-      setLastSelectedFromSquare(clickedSquare);
+      // Attempting to select a piece
+      const pieceOnSquare = PieceImagesContainer.current && Array.from(
+        PieceImagesContainer.current.getElementsByTagName("img")
+      ).find((img) => img.alt === clickedSquare);
+
+      if (!pieceOnSquare) return; // Clicked on empty square
+
+      const pieceInfo = pieceOnSquare.getAttribute("pieceinfo");
+      const isBlackPiece = pieceInfo.charCodeAt(0) > 96;
+      const isWhitePiece = !isBlackPiece;
+      const isBlackTurn = boardFlipped;
+      const isWhiteTurn = !boardFlipped;
+
+      if ((isWhiteTurn && isWhitePiece) || (isBlackTurn && isBlackPiece)) {
+        setSelectedSquare(clickedSquare);
+        setLastSelectedFromSquare(clickedSquare);
+      }
     }
   };
+
   const handlePromotionCompleted = (promotedPiece) => {
     const from = lastSelectedFromSquare;
     const to = lastSelectedToSquare;
-    const move = from + to + promotedPiece.toLowerCase();
-    if (!triggerMove(move)) {
-      solveChecker("invalid_move");
-      return;
-    }
-    checkIfSolved(move);
+    
+    movePiece(from, to, true, promotedPiece.toLowerCase());
+    
     setShowPromotion(null);
   };
 
   return (
     <div ref={containerRef} className="w-full">
-      <div className="relative aspect-square" onClick={handleSquareClick}>
+      <div
+        className="relative aspect-square"
+        onClick={handleSquareClick}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
         <BoardBackground
           ref={boardRef}
           showCoordinates={showCoordinates}
@@ -279,6 +305,13 @@ const Board = ({
             onPromotionCompleted={handlePromotionCompleted}
           />
         )}
+
+        <HoveredSquare
+          square={hoveredSquare}
+          squareSize={squareSize}
+          boardFlipped={boardFlipped}
+          pieceSelected={!!selectedSquare}
+        />
 
         {selectedSquare && (
           <SquareHighlight
@@ -313,6 +346,13 @@ const Board = ({
             boardFlipped={boardFlipped}
           />
         </div>
+        {isPuzzleComplete && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/60">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">Puzzle Complete!</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

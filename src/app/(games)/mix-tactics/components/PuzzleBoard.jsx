@@ -9,6 +9,7 @@ export const PuzzleBoard = ({
   isShaking,
   isSoundEnabled,
   solveChecker,
+  isPuzzleComplete,
 }) => (
   <section
     className={`w-full rounded-2xl border border-[#2f3b56] bg-gradient-to-b from-[#141b32] to-[#080d1f] p-5 transition-transform ${
@@ -33,6 +34,7 @@ export const PuzzleBoard = ({
               solveChecker={solveChecker}
               isSoundEnabled={isSoundEnabled}
               revertOnWrongMove={true}
+              isPuzzleComplete={isPuzzleComplete}
             />
           </div>
         </div>
