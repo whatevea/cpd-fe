@@ -18,8 +18,8 @@ function App() {
             <AppRoutes />
           </Suspense>
         </main>
-        <PuzzleHydrator />
       </LoadingWrapper>
+      <PuzzleHydrator />
     </div>
   );
 }

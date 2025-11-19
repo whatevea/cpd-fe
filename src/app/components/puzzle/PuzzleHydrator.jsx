@@ -1,84 +1,170 @@
 import { useEffect, useRef, useState } from "react";
 import Papa from "papaparse";
 import { puzzleStore } from "@/app/storage";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaCloudDownloadAlt, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+import { CgSpinner } from "react-icons/cg";
 
 const HYDRATION_FLAG = "cpd::puzzlesHydrated";
-
-const scheduleIdle = (callback) => {
-  if ("requestIdleCallback" in window) {
-    return window.requestIdleCallback(callback);
-  }
-  return window.setTimeout(callback, 0);
-};
-
-const cancelIdle = (id) => {
-  if (id === -1) return;
-  if ("cancelIdleCallback" in window) {
-    window.cancelIdleCallback(id);
-  } else {
-    clearTimeout(id);
-  }
-};
+const PUZZLES_URL = "/puzzles.csv";
 
 export const PuzzleHydrator = () => {
-  const [status, setStatus] = useState("");
+  const [state, setState] = useState("idle"); // idle, downloading, parsing, complete, error
+  const [progress, setProgress] = useState(0); // 0-100
+  const [details, setDetails] = useState("");
+  const [isVisible, setIsVisible] = useState(false);
+
   const bufferRef = useRef([]);
-  const parserRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
+    // Check if already hydrated
     if (localStorage.getItem(HYDRATION_FLAG)) {
-      return undefined;
+      return;
     }
 
-    let idleHandle = -1;
-    let cancelled = false;
+    const hydrate = async () => {
+      setIsVisible(true);
+      setState("downloading");
+      setProgress(0);
+      setDetails("Connecting to server...");
 
-    const startHydration = () => {
-      parserRef.current = Papa.parse("/puzzles.csv", {
-        download: true,
-        header: true,
-        worker: true,
-        skipEmptyLines: "greedy",
-        chunk: (results, parser) => {
-          parser.pause();
-          bufferRef.current.push(...results.data);
-          setStatus(
-            `Caching ${
-              bufferRef.current.length.toLocaleString() || "…"
-            } puzzles…`
-          );
-          idleHandle = scheduleIdle(() => parser.resume());
-        },
-        complete: async () => {
-          if (cancelled) return;
-          setStatus("Finalizing offline cache…");
-          await puzzleStore.setItem("puzzlesArray", bufferRef.current);
-          localStorage.setItem(HYDRATION_FLAG, "true");
-          setStatus("");
-        },
-        error: (error) => {
-          console.error("Puzzle hydration failed:", error);
-          setStatus("Unable to prepare offline puzzles.");
-        },
-      });
+      try {
+        abortControllerRef.current = new AbortController();
+        const response = await fetch(PUZZLES_URL, {
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const contentLength = response.headers.get("content-length");
+        const total = contentLength ? parseInt(contentLength, 10) : 0;
+        let loaded = 0;
+
+        const reader = response.body.getReader();
+        const chunks = [];
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          chunks.push(value);
+          loaded += value.length;
+
+          if (total) {
+            setProgress(Math.round((loaded / total) * 100));
+            setDetails(`Downloading: ${Math.round(loaded / 1024)}KB / ${Math.round(total / 1024)}KB`);
+          } else {
+            setDetails(`Downloading: ${Math.round(loaded / 1024)}KB`);
+          }
+        }
+
+        // Combine chunks into a single blob/text
+        const blob = new Blob(chunks);
+        const text = await blob.text();
+
+        // Start Parsing
+        setState("parsing");
+        setProgress(0);
+        setDetails("Preparing to parse...");
+
+        // Use a small timeout to let the UI update before blocking with parsing
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        Papa.parse(text, {
+          header: true,
+          skipEmptyLines: "greedy",
+          worker: true, // Use a worker to avoid freezing the UI
+          step: (row, parser) => {
+             // Note: 'step' can be slow for huge files if we update state every row.
+             // But for progress tracking it's useful. 
+             // Better approach with worker: use 'chunk' or just rely on the worker's internal progress if exposed, 
+             // but PapaParse worker doesn't expose granular progress easily in the main thread callback 
+             // without some overhead. 
+             // Let's stick to 'complete' for simplicity or 'chunk' if we want updates.
+             // Actually, for a large CSV, 'step' is too chatty. 'chunk' is better.
+          },
+          chunk: (results, parser) => {
+             bufferRef.current.push(...results.data);
+             // We can't easily know "total rows" without reading the whole file first, 
+             // but we can estimate or just show "Processed X rows"
+             setDetails(`Parsed ${bufferRef.current.length.toLocaleString()} puzzles`);
+          },
+          complete: async () => {
+            setDetails("Saving to offline storage...");
+            await puzzleStore.setItem("puzzlesArray", bufferRef.current);
+            localStorage.setItem(HYDRATION_FLAG, "true");
+            
+            setState("complete");
+            setDetails("Ready to play!");
+            setProgress(100);
+            
+            // Hide after a delay
+            setTimeout(() => setIsVisible(false), 3000);
+          },
+          error: (err) => {
+            console.error("CSV Parse Error:", err);
+            throw err;
+          }
+        });
+
+      } catch (error) {
+        if (error.name === 'AbortError') return;
+        console.error("Hydration failed:", error);
+        setState("error");
+        setDetails("Failed to load puzzles. Please refresh.");
+      }
     };
 
-    idleHandle = scheduleIdle(startHydration);
+    hydrate();
 
     return () => {
-      cancelled = true;
-      cancelIdle(idleHandle);
-      if (parserRef.current?.abort) {
-        parserRef.current.abort();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
 
-  if (!status) return null;
-
   return (
-    <div className="fixed bottom-4 right-4 rounded-lg bg-black/75 px-4 py-2 text-sm text-white shadow-2xl backdrop-blur">
-      {status}
-    </div>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          className="fixed bottom-6 right-6 z-50 w-80 overflow-hidden rounded-xl border border-[#282e39] bg-[#151b2e]/95 p-4 shadow-2xl backdrop-blur-md"
+        >
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1c2236]">
+              {state === "downloading" && <FaCloudDownloadAlt className="text-[#135bec]" />}
+              {state === "parsing" && <CgSpinner className="animate-spin text-[#eab308]" />}
+              {state === "complete" && <FaCheckCircle className="text-green-500" />}
+              {state === "error" && <FaExclamationCircle className="text-red-500" />}
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-white">
+                {state === "downloading" && "Downloading Puzzles"}
+                {state === "parsing" && "Processing Library"}
+                {state === "complete" && "Update Complete"}
+                {state === "error" && "Update Failed"}
+              </h4>
+              <p className="mt-1 text-xs text-gray-400 truncate">{details}</p>
+              
+              {(state === "downloading" || state === "parsing") && (
+                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#0d111c]">
+                  <motion.div 
+                    className={`h-full rounded-full ${state === "parsing" ? "bg-[#eab308]" : "bg-[#135bec]"}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${state === "parsing" ? 100 : progress}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
