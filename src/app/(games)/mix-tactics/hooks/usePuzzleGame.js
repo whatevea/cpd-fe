@@ -9,7 +9,7 @@ const SOUND_ASSETS = {
   victory: "/media/victory.mp3",
 };
 
-const HYDRATION_RETRY_LIMIT = 5;
+const HYDRATION_RETRY_LIMIT = 20;
 
 //This inferTurn is reversed because first move is played automatically 
 const inferTurn = (fen) => (fen?.split(" ")[1] === "w" ? "Black" : "White");
@@ -84,7 +84,7 @@ export const usePuzzleGame = () => {
         });
 
         if (retryRef.current <= HYDRATION_RETRY_LIMIT) {
-          setTimeout(loadPuzzle, hydrating ? 1500 : 1000);
+          setTimeout(loadPuzzle, hydrating ? 2000 : 1000);
         }
 
         return;
@@ -113,7 +113,7 @@ export const usePuzzleGame = () => {
       });
 
       if (retryRef.current <= HYDRATION_RETRY_LIMIT) {
-        setTimeout(loadPuzzle, 1000);
+        setTimeout(loadPuzzle, 2000);
       }
     } finally {
       setIsLoading(false);

@@ -51,7 +51,7 @@ export const useBlindfoldPuzzle = () => {
       const audio = soundRefs.current[soundKey];
       if (!audio) return;
       audio.currentTime = 0;
-      audio.play().catch(() => {});
+      audio.play().catch(() => { });
     },
     [ui.isSoundEnabled]
   );
@@ -95,8 +95,8 @@ export const useBlindfoldPuzzle = () => {
         message: "Failed to fetch puzzle. Retrying…",
         type: "error",
       });
-      if (retryRef.current <= 3) {
-        setTimeout(loadPuzzle, 1000);
+      if (retryRef.current <= 20) {
+        setTimeout(loadPuzzle, 2000);
       }
     }
   }, []);

@@ -17,12 +17,15 @@ const loadPuzzlesFromStorage = async () => {
   try {
     const data = await store.getItem("puzzlesArray");
     puzzleArray = Array.isArray(data) ? data.filter(Boolean) : [];
-    filteredPuzzlesCache = puzzleArray.filter(
-      (puzzle) =>
-        puzzle?.Themes && typeof puzzle.Themes === "string"
-          ? !puzzle.Themes.includes("promotion")
-          : false
-    );
+    filteredPuzzlesCache = puzzleArray.filter((puzzle) => {
+      if (!puzzle) return false;
+      // If Themes is missing, we assume it's safe (or unsafe? let's assume safe but log warning if needed, 
+      // but actually if we want "no promotion", we should be careful. 
+      // If Themes is missing, we can't know if it has promotion. 
+      // Let's assume if it's missing it's NOT a promotion puzzle unless proven otherwise.)
+      const themes = puzzle.Themes || "";
+      return typeof themes === "string" && !themes.includes("promotion");
+    });
   } catch (error) {
     console.error("Failed to load offline puzzles:", error);
     puzzleArray = [];
@@ -33,13 +36,24 @@ const loadPuzzlesFromStorage = async () => {
 };
 
 const ensurePuzzlesReady = async () => {
+  // If we have puzzles in memory, return them
   if (puzzleArray.length) return puzzleArray;
 
-  if (!loadPromise) {
-    loadPromise = loadPuzzlesFromStorage().finally(() => {
-      loadPromise = null;
-    });
+  // If a load is already in progress, wait for it
+  if (loadPromise) {
+    await loadPromise;
+    // After waiting, check if we got puzzles. If so, return them.
+    if (puzzleArray.length) return puzzleArray;
   }
+
+  // If we are here, it means either:
+  // 1. We haven't tried loading yet.
+  // 2. We tried loading before, but it was empty (maybe hydration wasn't done).
+  // So we should try loading from storage again.
+
+  loadPromise = loadPuzzlesFromStorage().finally(() => {
+    loadPromise = null;
+  });
 
   await loadPromise;
   return puzzleArray;

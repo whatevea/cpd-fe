@@ -75,36 +75,32 @@ export const PuzzleHydrator = () => {
           header: true,
           skipEmptyLines: "greedy",
           worker: true, // Use a worker to avoid freezing the UI
-          step: (row, parser) => {
-             // Note: 'step' can be slow for huge files if we update state every row.
-             // But for progress tracking it's useful. 
-             // Better approach with worker: use 'chunk' or just rely on the worker's internal progress if exposed, 
-             // but PapaParse worker doesn't expose granular progress easily in the main thread callback 
-             // without some overhead. 
-             // Let's stick to 'complete' for simplicity or 'chunk' if we want updates.
-             // Actually, for a large CSV, 'step' is too chatty. 'chunk' is better.
-          },
-          chunk: (results, parser) => {
-             bufferRef.current.push(...results.data);
-             // We can't easily know "total rows" without reading the whole file first, 
-             // but we can estimate or just show "Processed X rows"
-             setDetails(`Parsed ${bufferRef.current.length.toLocaleString()} puzzles`);
-          },
-          complete: async () => {
+          complete: async (results) => {
             setDetails("Saving to offline storage...");
-            await puzzleStore.setItem("puzzlesArray", bufferRef.current);
+            const puzzles = results.data;
+            console.log(`Parsed ${puzzles.length} puzzles.`);
+
+            if (puzzles.length === 0) {
+              console.warn("Parsed puzzles array is empty!");
+              setState("error");
+              setDetails("No puzzles found in file.");
+              return;
+            }
+
+            await puzzleStore.setItem("puzzlesArray", puzzles);
             localStorage.setItem(HYDRATION_FLAG, "true");
-            
+
             setState("complete");
             setDetails("Ready to play!");
             setProgress(100);
-            
+
             // Hide after a delay
             setTimeout(() => setIsVisible(false), 3000);
           },
           error: (err) => {
             console.error("CSV Parse Error:", err);
-            throw err;
+            setState("error");
+            setDetails("Failed to parse puzzles.");
           }
         });
 
@@ -141,7 +137,7 @@ export const PuzzleHydrator = () => {
               {state === "complete" && <FaCheckCircle className="text-green-500" />}
               {state === "error" && <FaExclamationCircle className="text-red-500" />}
             </div>
-            
+
             <div className="flex-1 min-w-0">
               <h4 className="font-semibold text-white">
                 {state === "downloading" && "Downloading Puzzles"}
@@ -150,10 +146,10 @@ export const PuzzleHydrator = () => {
                 {state === "error" && "Update Failed"}
               </h4>
               <p className="mt-1 text-xs text-gray-400 truncate">{details}</p>
-              
+
               {(state === "downloading" || state === "parsing") && (
                 <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#0d111c]">
-                  <motion.div 
+                  <motion.div
                     className={`h-full rounded-full ${state === "parsing" ? "bg-[#eab308]" : "bg-[#135bec]"}`}
                     initial={{ width: 0 }}
                     animate={{ width: `${state === "parsing" ? 100 : progress}%` }}
