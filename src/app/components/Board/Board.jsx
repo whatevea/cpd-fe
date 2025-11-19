@@ -21,6 +21,7 @@ const Board = ({
   moves,
   solveChecker,
   isSoundEnabled,
+  revertOnWrongMove = false,
 }) => {
   // State
   const [fen, setFen] = useState(fen_);
@@ -112,6 +113,33 @@ const Board = ({
     }
   };
 
+  const revertMoveAnimation = (move) => {
+    if (!move) return;
+
+    const allPiecesImg = PieceImagesContainer.current.getElementsByTagName("img");
+    const pieceToMove = Array.from(allPiecesImg).find(
+      (img) => img.alt === move.to
+    );
+
+    if (pieceToMove) {
+      const { top, left } = squareCoordinates(
+        move.from,
+        squareSize,
+        boardFlipped
+      );
+      const pieceSizeOffset = (squareSize - pieceToMove.width) / 2;
+      playMoveSound();
+      pieceToMove.style.top = `${top + pieceSizeOffset}px`;
+      pieceToMove.style.left = `${left + pieceSizeOffset}px`;
+      pieceToMove.alt = move.from;
+      setTimeout(() => {
+        setFen(chessValidator.current.fen());
+      }, 300);
+    } else {
+      setFen(chessValidator.current.fen());
+    }
+  };
+
   const checkIfSolved = (lastMove) => {
     if (moves[0] === lastMove) {
       solveChecker("correct_move");
@@ -124,6 +152,11 @@ const Board = ({
       }
     } else {
       solveChecker("wrong_move");
+      if (revertOnWrongMove) {
+        const undoneMove = chessValidator.current.undo();
+        revertMoveAnimation(undoneMove);
+        setSelectedSquare(null);
+      }
     }
   };
 

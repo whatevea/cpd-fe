@@ -171,12 +171,11 @@ export const usePuzzleGame = () => {
           playSound("wrong");
           setIsShaking(true);
           setDialogue({
-            message: "Not quite. Resetting the position…",
+            message: "Not quite. That move is incorrect, try again.",
             tone: "error",
           });
           setTimeout(() => {
             setIsShaking(false);
-            resetPuzzle();
           }, 900);
           break;
         case "invalid_move":
@@ -192,7 +191,7 @@ export const usePuzzleGame = () => {
           break;
       }
     },
-    [isAuthenticated, playSound, resetPuzzle]
+    [isAuthenticated, playSound]
   );
 
   const boardProps = useMemo(

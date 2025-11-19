@@ -32,6 +32,7 @@ export const PuzzleBoard = ({
               boardFlipped={turn !== "White"}
               solveChecker={solveChecker}
               isSoundEnabled={isSoundEnabled}
+              revertOnWrongMove={true}
             />
           </div>
         </div>
