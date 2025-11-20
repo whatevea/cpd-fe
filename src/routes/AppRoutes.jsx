@@ -11,6 +11,8 @@ import LichessLoginPage from "@/app/login/lichess/page";
 import OnboardingPage from "@/app/login/onboarding/page";
 import ProfilePage from "@/app/profile/page";
 import { gamesList } from "@/app/constants/gameConfig";
+import PrivacyPolicyPage from "../app/components/pages/PrivacyPolicyPage";
+import TosPage from "../app/components/pages/TosPage";
 
 const NotFound = () => (
   <div className="flex min-h-screen items-center justify-center bg-[#092327] text-white">
@@ -48,6 +50,9 @@ export const AppRoutes = () => (
     <Route path="/login/lichess" element={<LichessLoginPage />} />
     <Route path="/login/onboarding" element={<OnboardingPage />} />
     <Route path="/profile" element={<ProfilePage />} />
+    <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+    <Route path="/terms-of-service" element={<TosPage />} />
+
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

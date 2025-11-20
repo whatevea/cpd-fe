@@ -13,14 +13,14 @@ export default function MessageBubble({
 
   const username =
     message.user?.username ||
-    (isCurrentUser ? loggedInUserName : "Unknown User");
+    (isCurrentUser ? loggedInUserName : "DeepseekAI");
 
   const formattedTime = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : "just now";
 
-  const messageText = message?.message || "";
-  const isAiMessage = /ai/i.test(username || "");
+  const messageText = (message?.message || "").trim();
+  const isAiMessage = /DeepSeekAI/i.test(username || "");
   const gameLink =
     typeof message?.gameDetail === "object"
       ? message?.gameDetail?.url || message?.gameDetail?.link
@@ -70,17 +70,15 @@ export default function MessageBubble({
       className={`mb-4 max-w-[80%] ${isCurrentUser ? "ml-auto" : "mr-auto"}`}
     >
       <div
-        className={`relative rounded-2xl p-4 shadow-md ${
-          isCurrentUser
-            ? "bg-[#819d25]/25 text-white"
-            : "bg-[#1e3a3d] text-white/90"
-        }`}
+        className={`relative rounded-2xl p-4 shadow-md ${isCurrentUser
+          ? "bg-[#819d25]/25 text-white"
+          : "bg-[#1e3a3d] text-white/90"
+          }`}
       >
         <div className="flex items-center gap-2 mb-1 text-xs">
           <span
-            className={`font-semibold text-sm ${
-              isCurrentUser ? "text-[#9edb30]" : "text-blue-200"
-            }`}
+            className={`font-semibold text-sm ${isCurrentUser ? "text-[#9edb30]" : "text-blue-200"
+              }`}
           >
             {username}
           </span>

@@ -3,6 +3,7 @@ import Navbar from "@/app/components/common/Navbar";
 import { LoadingWrapper } from "@/app/components/LoadingWrapper";
 import { PuzzleHydrator } from "@/app/components/puzzle/PuzzleHydrator";
 import { AppRoutes } from "./routes/AppRoutes";
+import Footer from "./app/components/common/Footer";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         </main>
       </LoadingWrapper>
       <PuzzleHydrator />
+      <Footer />
     </div>
   );
 }
