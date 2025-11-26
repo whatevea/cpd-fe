@@ -116,7 +116,7 @@ export const ChessZeroBoard = ({
       )}
       {showPromotionDialog && (
         <div className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-lg p-2 sm:p-3 flex gap-1 sm:gap-2">
+          <div className="bg-white rounded-lg p-2 sm:p-3 flex gap-1 sm:gap-2 overflow-x-auto">
             {["Q", "R", "B", "N", "K"].map((piece) => (
               <img
                 key={piece}
