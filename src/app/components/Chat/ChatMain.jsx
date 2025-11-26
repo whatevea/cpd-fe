@@ -442,7 +442,7 @@ export default function Chat({ variant = "auto" }) {
       />
 
       <div className="flex flex-1 min-h-0 flex-col bg-[#050c19]">
-        <div className="flex-1 min-h-0 overflow-hidden p-4">
+        <div className="flex-1 min-h-0 overflow-hidden p-4 overflow-y-auto">
           <div className="relative h-full">
             <div
               ref={chatBodyRef}
