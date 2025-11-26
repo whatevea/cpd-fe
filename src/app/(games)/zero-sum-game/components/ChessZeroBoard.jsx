@@ -81,9 +81,8 @@ export const ChessZeroBoard = ({
           return (
             <div
               key={square}
-              className={`absolute cursor-pointer transition-all hover:brightness-125 ${
-                boardLocked ? "pointer-events-none opacity-70" : ""
-              }`}
+              className={`absolute cursor-pointer transition-all hover:brightness-125 ${boardLocked ? "pointer-events-none opacity-70" : ""
+                }`}
               onClick={() => {
                 if (!targetBoard[square]) {
                   clickedSquare(square);
@@ -117,13 +116,13 @@ export const ChessZeroBoard = ({
       )}
       {showPromotionDialog && (
         <div className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-lg p-3 flex gap-2">
+          <div className="bg-white rounded-lg p-2 sm:p-3 flex gap-1 sm:gap-2">
             {["Q", "R", "B", "N", "K"].map((piece) => (
               <img
                 key={piece}
                 src={PIECE_MAPPINGS[piece]}
                 alt={piece}
-                className="w-12 h-12 cursor-pointer hover:bg-gray-100 rounded p-1"
+                className="w-11 sm:w-12 h-11 sm:h-12 cursor-pointer hover:bg-gray-100 rounded p-1"
                 onClick={() => handlePromotion(piece)}
               />
             ))}
