@@ -116,20 +116,20 @@ export const ChessZeroBoard = ({
       )}
       {showPromotionDialog && (
         <div className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-lg p-2 sm:p-3 flex gap-1 sm:gap-2">
+          <div className="bg-white rounded-lg p-2 sm:p-3 flex gap-0 sm:gap-2 items-end">
             {["Q", "R", "B", "N", "K"].map((piece) => (
               <img
                 key={piece}
                 src={PIECE_MAPPINGS[piece]}
                 alt={piece}
-                className="min-w-9 sm:w-12 min-h-9 sm:h-12 cursor-pointer hover:bg-gray-100 rounded p-1"
+                className="w-10 sm:w-12 h-10 sm:h-12 cursor-pointer hover:bg-gray-100 rounded p-1"
                 onClick={() => handlePromotion(piece)}
               />
             ))}
             <img
               src={PIECE_MAPPINGS["Trash"]}
               alt="Remove"
-              className="sm:w-12 min-w-8 sm:h-12 min-h-8 cursor-pointer hover:bg-gray-100 rounded p-1"
+              className="sm:w-12 w-10 sm:h-12 h-10 cursor-pointer hover:bg-gray-100 rounded p-1"
               onClick={() => handlePromotion("Remove")}
             />
           </div>
