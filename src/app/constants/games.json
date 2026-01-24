@@ -48,6 +48,70 @@
     ]
   },
   {
+    "slug": "mate-in-1",
+    "path": "/mate-in-1",
+    "title": "Mate in 1",
+    "pageDescription": "Mate in 1 puzzles sharpen your instant tactical vision—spot the final blow in a single move.",
+    "metaDescription": "Mate in 1 puzzles sharpen your instant tactical vision—spot the final blow in a single move.",
+    "cardDescription": "Deliver checkmate in one clean, precise move.",
+    "icon": "IoExtensionPuzzle",
+    "gradient": "bg-gradient-to-br from-emerald-900/40 to-cyan-900/40",
+    "coverPhoto": "/media/mateIn1.jpg",
+    "category": "Standard",
+    "tags": [
+      "intuition",
+      "visualisation"
+    ]
+  },
+  {
+    "slug": "mate-in-2",
+    "path": "/mate-in-2",
+    "title": "Mate in 2",
+    "pageDescription": "Mate in 2 puzzles reward accurate calculation—force mate with a two-move plan.",
+    "metaDescription": "Mate in 2 puzzles reward accurate calculation—force mate with a two-move plan.",
+    "cardDescription": "Plan two moves ahead and seal the mate.",
+    "icon": "IoExtensionPuzzle",
+    "gradient": "bg-gradient-to-br from-sky-900/40 to-blue-900/40",
+    "coverPhoto": "/media/mateIn2.jpg",
+    "category": "Standard",
+    "tags": [
+      "intuition",
+      "visualisation"
+    ]
+  },
+  {
+    "slug": "mate-in-3",
+    "path": "/mate-in-3",
+    "title": "Mate in 3",
+    "pageDescription": "Mate in 3 puzzles test deeper calculation—create a forced mating net in three moves.",
+    "metaDescription": "Mate in 3 puzzles test deeper calculation—create a forced mating net in three moves.",
+    "cardDescription": "See the full mating net in three moves.",
+    "icon": "IoExtensionPuzzle",
+    "gradient": "bg-gradient-to-br from-slate-900/40 to-indigo-900/40",
+    "coverPhoto": "/media/mateIn3.jpg",
+    "category": "Standard",
+    "tags": [
+      "intuition",
+      "visualisation"
+    ]
+  },
+  {
+    "slug": "pawn-endgame",
+    "path": "/pawn-endgame",
+    "title": "Pawn Endgame",
+    "pageDescription": "Pawn Endgame puzzles focus on precision in king and pawn races—convert the tiny edges.",
+    "metaDescription": "Pawn Endgame puzzles focus on precision in king and pawn races—convert the tiny edges.",
+    "cardDescription": "Master king-and-pawn technique under pressure.",
+    "icon": "IoExtensionPuzzle",
+    "gradient": "bg-gradient-to-br from-amber-900/40 to-rose-900/40",
+    "coverPhoto": "/media/pawnEndgame.jpg",
+    "category": "Standard",
+    "tags": [
+      "intuition",
+      "visualisation"
+    ]
+  },
+  {
     "slug": "zero-sum-game",
     "path": "/zero-sum-game",
     "title": "Zero Sum Game",

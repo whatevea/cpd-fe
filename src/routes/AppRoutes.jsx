@@ -5,6 +5,10 @@ import MixTacticsPage from "@/app/(games)/mix-tactics/page";
 import BlindTacticsPage from "@/app/(games)/blind-tactics/page";
 import GuessTheSquarePage from "@/app/(games)/guess-the-square/page";
 import ZeroSumGamePage from "@/app/(games)/zero-sum-game/page";
+import MateInOnePage from "@/app/(games)/mate-in-1/page";
+import MateInTwoPage from "@/app/(games)/mate-in-2/page";
+import MateInThreePage from "@/app/(games)/mate-in-3/page";
+import PawnEndgamePage from "@/app/(games)/pawn-endgame/page";
 import AccountPage from "@/app/account/page";
 import GoogleLoginPage from "@/app/login/google/page";
 import LichessLoginPage from "@/app/login/lichess/page";
@@ -28,6 +32,10 @@ const gameComponents = {
   "blind-tactics": BlindTacticsPage,
   "guess-the-square": GuessTheSquarePage,
   "zero-sum-game": ZeroSumGamePage,
+  "mate-in-1": MateInOnePage,
+  "mate-in-2": MateInTwoPage,
+  "mate-in-3": MateInThreePage,
+  "pawn-endgame": PawnEndgamePage,
 };
 
 export const AppRoutes = () => (

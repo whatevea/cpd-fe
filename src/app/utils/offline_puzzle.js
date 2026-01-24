@@ -1,5 +1,6 @@
 let allPuzzles = [];
 let nonPromoPuzzles = [];
+let puzzlesByTheme = null;
 let storePromise = null;
 let loadPromise = null;
 
@@ -30,11 +31,13 @@ const loadPuzzlesFromStorage = async () => {
     const data = await store.getItem("puzzlesArray");
     allPuzzles = Array.isArray(data) ? data.filter(Boolean) : [];
     nonPromoPuzzles = allPuzzles.filter(isNonPromotional);
+    puzzlesByTheme = null;
 
   } catch (error) {
     console.error("Failed to load offline puzzles:", error);
     allPuzzles = [];
     nonPromoPuzzles = [];
+    puzzlesByTheme = null;
   }
 
   return allPuzzles;
@@ -63,4 +66,26 @@ export const getRandomPuzzleOffline = async () => {
 export const getRandomPuzzleOfflineNoPromotion = async () => {
   await ensurePuzzlesReady();
   return getRandomItem(nonPromoPuzzles);
+};
+
+const buildThemeIndex = () => {
+  if (puzzlesByTheme) return;
+  puzzlesByTheme = {};
+  allPuzzles.forEach((puzzle) => {
+    const themes = puzzle?.Themes?.split(" ") || [];
+    themes.forEach((theme) => {
+      if (!theme) return;
+      if (!puzzlesByTheme[theme]) {
+        puzzlesByTheme[theme] = [];
+      }
+      puzzlesByTheme[theme].push(puzzle);
+    });
+  });
+};
+
+export const getRandomPuzzleOfflineByTheme = async (theme) => {
+  if (!theme) return getRandomPuzzleOffline();
+  await ensurePuzzlesReady();
+  buildThemeIndex();
+  return getRandomItem(puzzlesByTheme?.[theme] || []);
 };
