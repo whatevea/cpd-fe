@@ -51,17 +51,16 @@ export default function Navbar() {
   return (
     <motion.nav className="fixed top-0 left-0 z-50 w-full border-b border-[#282e39] bg-[#101622]">
       <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 lg:w-[85%] xl:w-[80%]">
-        <div className="flex h-20 items-center justify-between gap-8">
+        <div className="flex h-22 items-center justify-between p-2 gap-8">
           <Link to="/" className="flex items-center gap-4">
-            <div className="flex size-10 items-center justify-center bg-[#135bec] text-lg font-black text-white">
-              CP
-            </div>
+
+            <img src="/media/CPD.svg" className="h-16 bg-center text-center  bg-slate-200 rounded-full" alt="" />
             <div>
               <p className="text-white text-lg font-semibold tracking-tight leading-none">
-                Chess Puzzles
+                Chess Puzzle
               </p>
               <p className="text-xs uppercase tracking-[0.4em] text-gray-400">
-                Training Lab
+                Directory
               </p>
             </div>
           </Link>

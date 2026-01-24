@@ -14,6 +14,8 @@ import {
   FiWifiOff,
   FiUsers,
 } from "react-icons/fi";
+import { HiOutlineChevronDoubleDown } from "react-icons/hi";
+
 import { HiOutlineRefresh } from "react-icons/hi";
 import ChatInput from "./ChatInput";
 import { Centrifuge } from "centrifuge";
@@ -87,7 +89,9 @@ export default function Chat({ variant = "auto" }) {
   const isPanel = variant === "panel";
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const element = chatBodyRef.current;
+    if (!element) return;
+    element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
   }, []);
 
   const buildSocketUrl = useCallback(() => {
@@ -427,7 +431,8 @@ export default function Chat({ variant = "auto" }) {
 
   const chatContainerClasses = [
     "flex flex-1 min-h-0 flex-col overflow-hidden",
-    isFullPage || isPanel ? "max-h-screen" : "",
+    isFullPage ? "max-h-screen" : "",
+    isPanel ? "h-full max-h-full" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -447,7 +452,7 @@ export default function Chat({ variant = "auto" }) {
             <div
               ref={chatBodyRef}
               onScroll={handleScroll}
-              className="h-full overflow-y-auto border border-[#282e39] bg-[#0d1422] p-4 space-y-4"
+              className="h-full overflow-y-auto border border-[#282e39] bg-[#0d1422] p-3 space-y-3"
             >
               {fetchError ? (
                 <div className="flex flex-col items-center justify-center text-center gap-3 py-10 text-white/70">
@@ -523,9 +528,10 @@ export default function Chat({ variant = "auto" }) {
                   setIsAutoscrollLocked(false);
                   scrollToBottom();
                 }}
-                className="absolute left-0 right-0 bottom-24 mx-auto flex w-48 items-center justify-center border border-[#135bec] bg-[#135bec] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.3em] text-white"
+                className="absolute bottom-20 right-4 flex items-center gap-2 rounded-full border border-[#2b3b5a] bg-[#0b1220]/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur"
               >
-                Jump to latest
+                <HiOutlineChevronDoubleDown color="red" />
+                See latest
               </button>
             )}
 
@@ -545,6 +551,7 @@ export default function Chat({ variant = "auto" }) {
           isLoading={isLoading}
           maxLength={MESSAGE_CHAR_LIMIT}
           disabled={!isAuthenticated}
+          loginRequired={!isAuthenticated}
           errorMessage={submitError}
         />
       </div>
@@ -553,7 +560,7 @@ export default function Chat({ variant = "auto" }) {
 
   if (isFullPage) {
     return (
-      <div className="h-screen bg-[#092327] p-4 pt-10">
+      <div className="h-full overflow-hidden bg-[#092327]">
         <div className="mx-auto flex h-full max-w-4xl flex-col overflow-hidden border border-[#1a283a] bg-[#030915]/90 shadow-2xl">
           {chatContent}
         </div>
@@ -563,7 +570,7 @@ export default function Chat({ variant = "auto" }) {
 
   if (isPanel) {
     return (
-      <div className="flex h-full max-h-screen flex-col border border-[#282e39] bg-[#151b2e]">
+      <div className="flex h-full max-h-[86vh] flex-col border border-[#282e39] bg-[#151b2e]">
         {chatContent}
       </div>
     );

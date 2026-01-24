@@ -11,6 +11,7 @@ const ChatInput = memo(
     isLoading,
     maxLength = 600,
     disabled = false,
+    loginRequired = false,
     errorMessage = "",
   }) => {
     const safeValue = value ?? "";
@@ -64,12 +65,12 @@ const ChatInput = memo(
     return (
       <motion.form
         onSubmit={handleSubmit}
-        className="border-t border-[#1f2436] bg-[#0d1422] p-4 space-y-2"
+        className="border-t border-[#1f2436] bg-[#0d1422] p-3 space-y-1.5"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
       >
         <div className="flex items-end gap-3">
-          <div className="relative flex-1">
+          <div className="group relative flex-1">
             {isLoading && (
               <motion.div
                 animate={{ rotate: 360 }}
@@ -80,11 +81,17 @@ const ChatInput = memo(
               </motion.div>
             )}
 
+            {loginRequired && (
+              <div className="pointer-events-none absolute -top-9 left-2 rounded-md border border-[#2f3b56] bg-[#0b1220] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80 opacity-0 transition group-hover:opacity-100">
+                Login to chat
+              </div>
+            )}
+
             <textarea
               value={safeValue}
               onChange={onChange}
               placeholder="Share a thought or ask @ai for help..."
-              className="min-h-[56px] w-full resize-none border border-[#272e44] bg-[#090f1e] py-3 pl-11 pr-4 text-sm text-white/90 focus:border-[#135bec] focus:outline-none focus:ring-2 focus:ring-[#135bec]/30"
+              className="min-h-[50px] w-full resize-none border border-[#272e44] bg-[#090f1e] py-2.5 pl-11 pr-4 text-sm text-white/90 focus:border-[#135bec] focus:outline-none focus:ring-2 focus:ring-[#135bec]/30"
               maxLength={maxLength}
               disabled={disabled || isLoading}
               onKeyDown={handleKeyDown}
@@ -96,7 +103,7 @@ const ChatInput = memo(
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
             disabled={isSendDisabled}
-            className={`border px-6 py-3 text-sm font-bold uppercase tracking-[0.3em] text-white transition ${
+            className={`border px-4 py-2.5 text-xs font-bold uppercase tracking-[0.3em] text-white transition ${
               isSendDisabled
                 ? "border-[#2f3b56] bg-[#1b2337] cursor-not-allowed opacity-60"
                 : "border-[#135bec] bg-[#135bec] hover:bg-[#1a6bff]"
@@ -129,7 +136,7 @@ const ChatInput = memo(
           </motion.button>
         </div>
 
-        <div className="flex items-center justify-between text-[12px]">
+        <div className="flex items-center justify-between text-[11px]">
           <p
             className={`${
               errorMessage ? "text-rose-300" : "text-white/60"

@@ -67,29 +67,31 @@ export default function MessageBubble({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`mb-4 max-w-[80%] ${isCurrentUser ? "ml-auto" : "mr-auto"}`}
+      className={`mb-3 max-w-[78%] ${isCurrentUser ? "ml-auto" : "mr-auto"}`}
     >
       <div
-        className={`relative rounded-2xl p-4 shadow-md ${isCurrentUser
-          ? "bg-[#819d25]/25 text-white"
-          : "bg-[#1e3a3d] text-white/90"
-          }`}
+        className={`group relative rounded-2xl border px-3 py-2 shadow-sm ${
+          isCurrentUser
+            ? "border-[#2a3f31] bg-[#0f1f1a] text-white"
+            : "border-[#1f2a3f] bg-[#0f1626] text-white/90"
+        }`}
       >
-        <div className="flex items-center gap-2 mb-1 text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/60">
           <span
-            className={`font-semibold text-sm ${isCurrentUser ? "text-[#9edb30]" : "text-blue-200"
-              }`}
+            className={`font-semibold text-[12px] ${
+              isCurrentUser ? "text-[#9edb30]" : "text-blue-200"
+            }`}
           >
             {username}
           </span>
-          <span className="text-white/50">{formattedTime}</span>
+          <span className="text-white/50">• {formattedTime}</span>
           {isAiMessage && (
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 uppercase text-[10px] tracking-widest">
+            <span className="rounded-full border border-amber-400/30 bg-amber-500/10 px-2 py-0.5 uppercase text-[9px] tracking-[0.3em] text-amber-200">
               AI
             </span>
           )}
           {message.messageType === "game" && (
-            <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-200 uppercase text-[10px] tracking-widest">
+            <span className="rounded-full border border-sky-400/30 bg-sky-500/10 px-2 py-0.5 uppercase text-[9px] tracking-[0.3em] text-sky-200">
               Game
             </span>
           )}
@@ -99,14 +101,14 @@ export default function MessageBubble({
           <button
             type="button"
             onClick={handleCopy}
-            className="absolute top-3 right-3 text-white/50 hover:text-white transition text-xs flex items-center gap-1"
+            className="absolute right-2 top-2 flex items-center gap-1 text-xs text-white/40 opacity-0 transition group-hover:opacity-100 hover:text-white"
             aria-label="Copy message"
           >
             {copied ? <FiCheck /> : <FiCopy />}
           </button>
         )}
 
-        <p className="text-sm whitespace-pre-wrap break-words pr-8">
+        <p className="text-sm leading-snug whitespace-pre-wrap break-words pr-6">
           {messageText}
         </p>
 
@@ -115,7 +117,7 @@ export default function MessageBubble({
             href={gameLink}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 text-xs text-sky-200 mt-3 underline-offset-2 hover:underline"
+            className="mt-2 inline-flex items-center gap-2 text-xs text-sky-200 underline-offset-2 hover:underline"
           >
             {gameLabel}
           </a>

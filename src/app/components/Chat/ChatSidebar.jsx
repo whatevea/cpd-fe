@@ -16,6 +16,9 @@ export default function ChatSidebar({ className = "" }) {
         "h-full",
         "max-h-screen",
         "min-h-0",
+        "lg:sticky",
+        "lg:top-24",
+        "lg:h-[calc(100vh-6rem)]",
         "transition-all",
         "duration-300",
         "ease-out",
@@ -74,7 +77,7 @@ export default function ChatSidebar({ className = "" }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 40 }}
               transition={{ type: "spring", stiffness: 180, damping: 26 }}
-              className="flex h-full max-h-screen flex-col"
+              className="flex h-full min-h-0 flex-col"
             >
               <ChatMain variant="panel" />
             </motion.div>
