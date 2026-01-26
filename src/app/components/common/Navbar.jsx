@@ -24,6 +24,7 @@ export default function Navbar() {
   const handleLogout = () => {
     clearUser();
     setIsProfileOpen(false);
+    setIsOpen(false);
   };
 
   const NavItem = ({ to, children }) => (

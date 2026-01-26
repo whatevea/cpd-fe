@@ -7,19 +7,20 @@ export default function MessageBubble({
   message,
   loggedInUserName,
   loggedInUserId,
+  isHighlighted = false,
 }) {
   const messageUserId = message.user?._id || message.user;
   const isCurrentUser = messageUserId === loggedInUserId;
 
   const username =
     message.user?.username ||
-    (isCurrentUser ? loggedInUserName : "DeepseekAI");
+    (isCurrentUser ? loggedInUserName : "DeepSeek AI");
 
   const formattedTime = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : "just now";
 
-  const messageText = (message?.message || "").trim();
+  const messageText = (message?.message || "").trim().slice(0, 200);
   const isAiMessage = /DeepSeekAI/i.test(username || "");
   const gameLink =
     typeof message?.gameDetail === "object"
@@ -65,11 +66,14 @@ export default function MessageBubble({
 
   return (
     <motion.div
+      id={`message-${message._id}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={`mb-3 max-w-[78%] ${isCurrentUser ? "ml-auto" : "mr-auto"}`}
     >
-      <div
+      <motion.div
+        animate={isHighlighted ? { borderColor: ["#fbbf24", "#f97316", "#fbbf24"] } : {}}
+        transition={isHighlighted ? { duration: 0.6, repeat: 4, ease: "easeInOut" } : {}}
         className={`group relative rounded-2xl border px-3 py-2 shadow-sm ${
           isCurrentUser
             ? "border-[#2a3f31] bg-[#0f1f1a] text-white"
@@ -122,7 +126,7 @@ export default function MessageBubble({
             {gameLabel}
           </a>
         )}
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

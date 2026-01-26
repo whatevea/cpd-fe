@@ -23,7 +23,7 @@ import MessageBubble from "./MessageBubble";
 import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "@/app/utils/apiClient";
 import ChatHeader from "./ChatHeader";
-const MESSAGE_CHAR_LIMIT = 600;
+const MESSAGE_CHAR_LIMIT = 200;
 const CONNECTION_META = {
   connected: {
     label: "Live updates on",
@@ -76,6 +76,7 @@ export default function Chat({ variant = "auto" }) {
   const latestMessageIdRef = useRef(messages[0]?._id || null);
   const hasFetchedInitialMessagesRef = useRef(false);
   const [isAutoscrollLocked, setIsAutoscrollLocked] = useState(false);
+  const [highlightedMessageId, setHighlightedMessageId] = useState(null);
   const messagesEndRef = useRef(null);
   const chatBodyRef = useRef(null);
   // This ref is used to prevent autoscroll when user scrolls up
@@ -92,6 +93,15 @@ export default function Chat({ variant = "auto" }) {
     const element = chatBodyRef.current;
     if (!element) return;
     element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
+  }, []);
+
+  const scrollToMessage = useCallback((messageId) => {
+    const element = chatBodyRef.current;
+    if (!element) return;
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }, []);
 
   const buildSocketUrl = useCallback(() => {
@@ -141,12 +151,20 @@ export default function Chat({ variant = "auto" }) {
               username:
                 data.user === loggedInUserId
                   ? loggedInUserName
-                  : data.username || "Unknown User",
+                  : data.username || "DeepSeek AI",
             },
           }
           : data;
 
       appendMessage(normalizedMessage);
+      
+      // Highlight new message for 5 seconds
+      const messageId = normalizedMessage?._id;
+      if (messageId) {
+        setHighlightedMessageId(messageId);
+        setTimeout(() => setHighlightedMessageId(null), 5000);
+      }
+
       setMeta((prev) => {
         const nextLatestId =
           normalizedMessage?._id ||
@@ -507,15 +525,16 @@ export default function Chat({ variant = "auto" }) {
                     </div>
                   ) : (
                     <AnimatePresence mode="popLayout">
-                      {orderedMessages.map((msg, index) => (
-                        <MessageBubble
-                          key={msg._id || `${msg.createdAt}-${index}`}
-                          message={msg}
-                          loggedInUserName={loggedInUserName}
-                          loggedInUserId={loggedInUserId}
-                        />
-                      ))}
-                    </AnimatePresence>
+                       {orderedMessages.map((msg, index) => (
+                         <MessageBubble
+                           key={msg._id || `${msg.createdAt}-${index}`}
+                           message={msg}
+                           loggedInUserName={loggedInUserName}
+                           loggedInUserId={loggedInUserId}
+                           isHighlighted={highlightedMessageId === msg._id}
+                         />
+                       ))}
+                     </AnimatePresence>
                   )}
                 </>
               )}
