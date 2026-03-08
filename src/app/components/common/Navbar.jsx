@@ -16,7 +16,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: "Puzzles", to: "/" },
-    { label: "Leaderboard", to: "/profile" },
+    { label: "Leaderboard", to: "/leaderboard" },
     { label: "Learn", to: "/mix-tactics" },
     { label: "Community", to: "/chat" },
   ];

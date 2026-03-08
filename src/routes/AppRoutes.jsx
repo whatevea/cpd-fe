@@ -14,6 +14,7 @@ import GoogleLoginPage from "@/app/login/google/page";
 import LichessLoginPage from "@/app/login/lichess/page";
 import OnboardingPage from "@/app/login/onboarding/page";
 import ProfilePage from "@/app/profile/page";
+import LeaderboardPage from "@/app/leaderboard/page";
 import { gamesList } from "@/app/constants/gameConfig";
 import PrivacyPolicyPage from "../app/components/pages/PrivacyPolicyPage";
 import TosPage from "../app/components/pages/TosPage";
@@ -58,6 +59,7 @@ export const AppRoutes = () => (
     <Route path="/login/lichess" element={<LichessLoginPage />} />
     <Route path="/login/onboarding" element={<OnboardingPage />} />
     <Route path="/profile" element={<ProfilePage />} />
+    <Route path="/leaderboard" element={<LeaderboardPage />} />
     <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
     <Route path="/terms-of-service" element={<TosPage />} />
 
