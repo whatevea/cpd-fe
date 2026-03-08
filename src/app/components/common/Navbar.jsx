@@ -103,7 +103,7 @@ export default function Navbar() {
                     >
                       <Link to="/profile">
                         <div className="flex items-center justify-between border-b border-[#1d2438] px-4 py-3 hover:bg-[#1a2236]">
-                          <span>Settings</span>
+                          <span>Profile</span>
                           <IoSettingsOutline />
                         </div>
                       </Link>
