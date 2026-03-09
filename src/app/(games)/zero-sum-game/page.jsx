@@ -7,9 +7,9 @@ import { Game } from "@/app/lib/chesszero/Game";
 import { targetSquares } from "@/app/utils/randompieceplacer";
 import { encrypt, decrypt } from "@/app/utils/encrypt_decrypt";
 import { PUBLIC_APP_URL } from "@/app/config/env";
-import { usePageMetadata } from "@/app/hooks/usePageMetadata";
 import { getGameConfig } from "@/app/constants/gameConfig";
 import GamePageLayout from "@/app/components/Layout/GamePageLayout";
+import SEO from "@/app/components/common/SEO";
 
 const soundMap = {
   pop: "/media/popnew.mp3",
@@ -29,6 +29,7 @@ export default function ZeroSumGamePage() {
     <Suspense
       fallback={
         <GamePageLayout title={game.title} description={game.metaDescription}>
+          <SEO title={game.title} description={game.metaDescription} />
           <div className="flex h-[60vh] items-center justify-center rounded-2xl border border-[#2f3b56] bg-[#0b1220] text-white">
             Loading {game.title}…
           </div>
@@ -57,11 +58,6 @@ function ZeroSumGameContent() {
   const runningTimeRef = useRef(0);
   const winTriggeredRef = useRef(false);
   const soundsRef = useRef({});
-
-  usePageMetadata({
-    title: game.title,
-    description: game.metaDescription,
-  });
 
   useEffect(() => {
     if (typeof Audio === "undefined") return;
@@ -231,6 +227,7 @@ function ZeroSumGameContent() {
 
   return (
     <GamePageLayout title={game.title} description={game.metaDescription}>
+      <SEO title={game.title} description={game.metaDescription} />
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {metrics.map((metric) => (

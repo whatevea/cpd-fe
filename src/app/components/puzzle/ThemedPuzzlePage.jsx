@@ -2,9 +2,9 @@ import { PuzzleBoard } from "@/app/components/puzzle/PuzzleBoard";
 import { PuzzleDetailsPanel } from "@/app/components/puzzle/PuzzleDetailsPanel";
 import { PuzzleHeader } from "@/app/components/puzzle/PuzzleHeader";
 import { getGameConfig } from "@/app/constants/gameConfig";
-import { usePageMetadata } from "@/app/hooks/usePageMetadata";
 import GamePageLayout from "@/app/components/Layout/GamePageLayout";
 import { useThemedPuzzleGame } from "@/app/hooks/useThemedPuzzleGame";
+import SEO from "@/app/components/common/SEO";
 
 const PuzzleLoadingState = ({ title, description }) => (
   <GamePageLayout title={title} description={description}>
@@ -19,22 +19,27 @@ export default function ThemedPuzzlePage({ slug, theme }) {
   const { boardProps, dialogue, isLoading, rawPuzzle, actions } =
     useThemedPuzzleGame({ theme });
 
-  usePageMetadata({
-    title: game.title,
-    description: game.metaDescription,
-  });
-
   if (!boardProps.fen || !boardProps.moves) {
     return (
-      <PuzzleLoadingState
-        title={game.title}
-        description={game.metaDescription}
-      />
+      <>
+        <SEO 
+          title={game.title} 
+          description={game.metaDescription} 
+        />
+        <PuzzleLoadingState
+          title={game.title}
+          description={game.metaDescription}
+        />
+      </>
     );
   }
 
   return (
     <GamePageLayout title={game.title} description={game.metaDescription}>
+      <SEO 
+        title={game.title} 
+        description={game.metaDescription} 
+      />
       <div className="space-y-6">
         <PuzzleHeader
           title={game.title}

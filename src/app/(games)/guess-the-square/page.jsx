@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getGameConfig } from "@/app/constants/gameConfig";
-import { usePageMetadata } from "@/app/hooks/usePageMetadata";
+import SEO from "@/app/components/common/SEO";
 import GamePageLayout from "@/app/components/Layout/GamePageLayout";
 import GuessBoard from "./components/GuessBoard";
 import { StatsPanel } from "./components/StatsPanel";
@@ -28,11 +28,6 @@ const GuessTheSquarePage = () => {
   const boardWrapperRef = useRef(null);
   const [boardSize, setBoardSize] = useState(0);
 
-  usePageMetadata({
-    title: game.title,
-    description: game.metaDescription,
-  });
-
   useEffect(() => {
     if (!boardWrapperRef.current) return undefined;
 
@@ -52,6 +47,7 @@ const GuessTheSquarePage = () => {
 
   return (
     <GamePageLayout title={game.title} description={game.metaDescription}>
+      <SEO title={game.title} description={game.metaDescription} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="relative rounded-2xl border border-[#2f3b56] bg-gradient-to-b from-[#141b32] to-[#080d1f] p-5">
           {isGameOver && (

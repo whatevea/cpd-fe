@@ -1,16 +1,19 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import "./index.css";
 import App from "./App.jsx";
 import { UserStoreProvider } from "./app/storage/userInfo";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
-      <UserStoreProvider>
-        <App />
-      </UserStoreProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <UserStoreProvider>
+          <App />
+        </UserStoreProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </StrictMode>
 );

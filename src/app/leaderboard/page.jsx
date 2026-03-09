@@ -7,7 +7,7 @@ import {
   FiZap,
 } from "react-icons/fi";
 import { apiFetch } from "@/app/utils/apiClient";
-import { usePageMetadata } from "@/app/hooks/usePageMetadata";
+import SEO from "@/app/components/common/SEO";
 
 const LEADERBOARD_API_URL = `${import.meta.env.VITE_API_URL}/api/leaderboard`;
 const LEADERBOARD_CACHE_KEY = "cpd::leaderboardCache";
@@ -85,12 +85,6 @@ export default function LeaderboardPage() {
   const [error, setError] = useState("");
   const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
 
-  usePageMetadata({
-    title: "Leaderboard",
-    description:
-      "Track top Chess Puzzle Directory players and compare puzzle points across the community.",
-  });
-
   useEffect(() => {
     let isMounted = true;
 
@@ -141,6 +135,10 @@ export default function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-[#101622] text-white">
+      <SEO
+        title="Leaderboard"
+        description="Track top Chess Puzzle Directory players and compare puzzle points across the community."
+      />
       <main className="mx-auto w-full px-4 pb-12 pt-28 lg:w-[85%] xl:w-[80%]">
         <section className="border border-[#282e39] bg-gradient-to-b from-[#1a2340] to-[#151b2e] p-6 md:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">

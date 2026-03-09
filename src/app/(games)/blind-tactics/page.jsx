@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { getGameConfig } from "@/app/constants/gameConfig";
-import { usePageMetadata } from "@/app/hooks/usePageMetadata";
+import SEO from "@/app/components/common/SEO";
 import GamePageLayout from "@/app/components/Layout/GamePageLayout";
 import BlindfoldBoard from "./components/BlindfoldBoard";
 import BlindfoldMovesTimeline from "./components/BlindfoldMovesTimeline";
@@ -13,13 +13,9 @@ export default function BlindTacticsPage() {
   const { puzzle, status, confirmedMoves, ui, actions } =
     useBlindfoldPuzzle();
 
-  usePageMetadata({
-    title: game.title,
-    description: game.metaDescription,
-  });
-
   return (
     <GamePageLayout title={game.title} description={game.metaDescription}>
+      <SEO title={game.title} description={game.metaDescription} />
       <div className="space-y-6">
         <BlindfoldStatusBar
           status={status}
