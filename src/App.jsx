@@ -5,6 +5,7 @@ import { PuzzleHydrator } from "@/app/components/puzzle/PuzzleHydrator";
 import { AppRoutes } from "./routes/AppRoutes";
 import Footer from "./app/components/common/Footer";
 import { useLocation } from "react-router-dom";
+import ScrollToTop from "./app/components/scrollWindow";
 
 function App() {
   const location = useLocation();
@@ -14,6 +15,7 @@ function App() {
     <div className="min-h-screen bg-[#092327] text-white">
       <LoadingWrapper>
         <Navbar />
+        <ScrollToTop />
         <main className={isChatRoute ? "h-screen overflow-hidden" : "min-h-screen"}>
           <Suspense
             fallback={
