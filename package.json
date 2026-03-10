@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "seo:generate": "node scripts/generate-seo-files.mjs",
+    "build": "npm run seo:generate && vite build",
+    "build:prod": "npm run seo:generate && vite build --mode production",
     "lint": "eslint .",
     "preview": "vite preview"
   },
